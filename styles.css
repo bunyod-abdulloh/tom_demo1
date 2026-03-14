@@ -353,7 +353,7 @@ body{
   .hint{font-size:9px;padding:6px 12px;}
 
   /* --- dims --- */
-  .dims-scroll{overflow:visible;max-height:none;}
+  .dims-scroll{overflow:visible;max-height:none;padding-bottom:10px;}
   .shape-card{padding:12px;}
   .shape-card-title{font-size:11px;}
   .seg-in{font-size:14px;min-height:38px;}
