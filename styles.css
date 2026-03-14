@@ -123,7 +123,7 @@ body{
 .canvas-wrap{
   flex:1;position:relative;overflow:hidden;
   background:var(--bg);min-height:420px;
-  touch-action:none;          /* prevent browser scroll/zoom on canvas */
+  touch-action:none;
 }
 
 #cv,#pv{
@@ -132,7 +132,6 @@ body{
 }
 #cv{cursor:crosshair}
 
-/* canvas zoom controls overlay */
 .cv-tools{
   position:absolute;right:10px;top:10px;
   display:flex;flex-direction:column;gap:6px;z-index:3;
@@ -160,7 +159,7 @@ body{
 .right-col{
   display:flex;flex-direction:column;
   background:var(--surface);
-  overflow:hidden;                /* crucial for dims-scroll flex */
+  overflow:hidden;
   min-height:0;
 }
 
@@ -196,7 +195,7 @@ body{
   color:var(--amber);background:rgba(230,168,23,.10);border:1px solid rgba(230,168,23,.25);white-space:nowrap;
 }
 .preview-canvas-wrap{
-  height:220px;position:relative;
+  height:200px;position:relative;
   background:
     radial-gradient(circle at 50% 15%,rgba(88,166,255,.14),transparent 35%),
     linear-gradient(180deg,#101721 0%,#0c1118 100%);
@@ -222,10 +221,86 @@ body{
 }
 .preview-meta span:last-child{color:var(--amber);font-weight:700;white-space:nowrap;}
 
+/* ============================================================
+   ROOF SELECTOR
+============================================================ */
+.roof-sel{
+  padding:10px 10px 12px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  background:var(--surface);
+}
+.roof-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  margin-bottom:10px;
+}
+.roof-btn{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  padding:7px 4px 6px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:var(--card);
+  cursor:pointer;
+  transition:border-color .15s, background .15s, color .15s;
+  color:var(--muted);
+  font-family:'Space Mono',monospace;
+}
+.roof-btn svg{
+  width:100%;
+  max-width:54px;
+  height:22px;
+  flex-shrink:0;
+}
+.roof-btn span{
+  font-size:8px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  white-space:nowrap;
+  line-height:1;
+}
+.roof-btn:hover{
+  border-color:rgba(230,168,23,.5);
+  color:var(--amber);
+  background:rgba(230,168,23,.06);
+}
+.roof-btn.active{
+  border-color:var(--amber);
+  background:rgba(230,168,23,.14);
+  color:var(--amber);
+}
+
+.pitch-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.pitch-lbl{
+  font-size:9px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:1px;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.pitch-val{
+  font-size:12px;
+  font-weight:700;
+  color:var(--amber);
+  font-family:'Space Mono',monospace;
+  min-width:34px;
+  text-align:right;
+  flex-shrink:0;
+}
+
 /* ---- dims panel  (takes remaining height on desktop) ---- */
 .dims-scroll{
   flex:1;
-  min-height:0;          /* allow shrinking below content height */
+  min-height:0;
   overflow-y:auto;
   padding:10px;
 }
@@ -287,7 +362,7 @@ body{
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
 /* ============================================================
-   TABLET  (≤1080px) – stack vertically
+   TABLET  (≤1080px)
 ============================================================ */
 @media (max-width:1080px){
   .layout{
@@ -305,9 +380,7 @@ body{
    MOBILE  (≤700px)
 ============================================================ */
 @media (max-width:700px){
-  body{
-    overflow:hidden;
-  }
+  body{overflow:hidden;}
 
   .layout{
     display:flex;
@@ -319,10 +392,7 @@ body{
     -webkit-overflow-scrolling:touch;
   }
 
-  .canvas-col,
-  .right-col{
-    overflow:visible;
-  }
+  .canvas-col,.right-col{overflow:visible;}
 
   .canvas-wrap{
     height:44dvh;
@@ -331,30 +401,19 @@ body{
     flex:none;
   }
 
-  .panel-title{
-    font-size:11px;
-    letter-spacing:1px;
-    padding:8px 10px;
-  }
+  .panel-title{font-size:11px;letter-spacing:1px;padding:8px 10px;}
 
-  .dims-scroll{
-    flex:none;
-    overflow:visible;
-    max-height:none;
-    padding:10px;
-  }
+  .dims-scroll{flex:none;overflow:visible;max-height:none;padding:10px;}
+
+  .roof-grid{grid-template-columns:repeat(3,1fr);}
 
   .result{
     position:sticky;
-    bottom:0;
-    z-index:20;
+    bottom:0;z-index:20;
     padding:10px 14px calc(10px + env(safe-area-inset-bottom));
     background:var(--bg);
     border-top:2px solid var(--border);
     box-shadow:0 -8px 24px rgba(0,0,0,.30);
   }
-
-  .res-val{
-    font-size:30px;
-  }
+  .res-val{font-size:30px;}
 }

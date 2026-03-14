@@ -28,7 +28,7 @@ let selShape = null;
 let hovArc   = null;
 let hovPt    = null;
 let drag     = null;
-let mouse    = { x:0, y:0 };   // world coords
+let mouse    = { x:0, y:0 };
 let dimsDirty = true;
 
 /* 2D canvas view transform */
@@ -51,6 +51,38 @@ const PS = {
   pinchStartYaw:0,  pinchStartPitch:0,
   pinchMidStart:{x:0,y:0}, lastTapAt:0
 };
+
+/* ============================================================
+   ROOF CONFIGURATION
+============================================================ */
+const roofConfig = {
+  type: 'gable',        // flat | shed | gable | hip | pyramid | mansard
+  pitch: GRID * 2.5     // roof height in world units (2.5 m default)
+};
+
+const ROOF_NAMES = {
+  flat:    'Tekis',
+  shed:    'Bir tomonli',
+  gable:   'Tizma',
+  hip:     'Hip',
+  pyramid: 'Piramida',
+  mansard: 'Mansard'
+};
+
+function setRoofType(type) {
+  roofConfig.type = type;
+  document.querySelectorAll('.roof-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.roof === type)
+  );
+  render3DPreview();
+}
+
+function setRoofPitch(val) {
+  roofConfig.pitch = parseFloat(val) * GRID;
+  const el = document.getElementById('pitch-val');
+  if (el) el.textContent = parseFloat(val).toFixed(1) + 'm';
+  render3DPreview();
+}
 
 /* ============================================================
    MATH HELPERS
@@ -92,7 +124,6 @@ function viewCentre(){ return s2w(cv.width/2,cv.height/2); }
 
 function cvSP(e){ const r=cv.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; }
 
-/* hit radii in world space – constant screen size regardless of zoom */
 function arcHitR()  { return (HANDLE_R+4)/view.scale; }
 function ptHitR()   { return 12/view.scale; }
 function closeDistW(){ return CLOSE_DIST/view.scale; }
@@ -335,23 +366,131 @@ function makeFace(pts,fill,stroke,lw=1.2){ return {pts,fill,stroke,lw}; }
 function faceAvgDepth(pts,yaw,pitch){ return pts.reduce((s,p)=>s+orbitDepth(p.x,p.y,p.z,yaw,pitch),0)/pts.length; }
 function drawFace3D(face,cam){ drawPoly3(pctx,face.pts.map(p=>project3D(p.x,p.y,p.z,cam)),face.fill,face.stroke,face.lw); }
 
+/* ── Wall faces only (no top cap – handled by buildRoofFaces) ── */
 function buildHouseFaces(sh,contour,sceneCx,sceneCy,color,selected){
   const faces=[];
-  /* Canvas Y pastga o'sadi, 3D Y yuqoriga — shuning uchun negat qilamiz */
   const ring=contour.map(p=>({x:p.x-sceneCx,y:-(p.y-sceneCy)}));
   const rB=ring.map(p=>({...p,z:0}));
   const rT=ring.map(p=>({...p,z:WALL_H}));
-  const tF=selected?'rgba(230,168,23,.22)':rgba(color,.18);
-  const tS=selected?'#e6a817':rgba(color,.70);
   const wF1=selected?'rgba(230,168,23,.30)':rgba(color,.24);
   const wF2=selected?'rgba(230,168,23,.16)':rgba(color,.12);
-  const wS=selected?'rgba(230,168,23,.55)':rgba(color,.42);
+  const wS =selected?'rgba(230,168,23,.55)':rgba(color,.42);
+  /* bottom face */
   faces.push(makeFace(rB.slice().reverse(),'rgba(255,255,255,.04)','rgba(255,255,255,.05)',1));
-  faces.push(makeFace(rT.slice(),tF,tS,1.6));
+  /* wall faces – NO flat top here; roof added separately */
   for(let i=0;i<ring.length;i++){
     const j=(i+1)%ring.length;
     const nx=-(ring[j].y-ring[i].y),ny=ring[j].x-ring[i].x;
     faces.push(makeFace([rB[i],rB[j],rT[j],rT[i]],(nx+ny*0.5)>=0?wF1:wF2,wS,1.4));
+  }
+  return faces;
+}
+
+/* ============================================================
+   ROOF FACE BUILDER
+   Generates 3D faces for the selected roof type on top of walls.
+============================================================ */
+function buildRoofFaces(sh, contour, sceneCx, sceneCy, color, selected) {
+  /* Convert canvas contour → 3D ring (Y inverted, centred on scene) */
+  const ring = contour.map(p => ({x: p.x - sceneCx, y: -(p.y - sceneCy)}));
+  const n = ring.length;
+  if (n < 3) return [];
+
+  const pitchH = roofConfig.pitch;
+  const type   = roofConfig.type;
+
+  /* Face colours */
+  const rFill   = selected ? 'rgba(230,168,23,.44)' : rgba(color, .34);
+  const rFill2  = selected ? 'rgba(230,168,23,.26)' : rgba(color, .20);
+  const rStroke = selected ? 'rgba(230,168,23,.95)' : rgba(color, .82);
+
+  /* Bounding box of the ring in 3D XY */
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  ring.forEach(p=>{
+    if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x;
+    if(p.y<minY)minY=p.y; if(p.y>maxY)maxY=p.y;
+  });
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+  const spanX=Math.max(maxX-minX,1), spanY=Math.max(maxY-minY,1);
+  const isWide = spanX >= spanY;
+
+  const base = ring.map(p => ({x:p.x, y:p.y, z:WALL_H}));
+  const faces = [];
+
+  /* ── FLAT ── simple cap polygon */
+  if (type === 'flat') {
+    faces.push(makeFace(base.slice(), rFill2, rStroke, 1.2));
+    return faces;
+  }
+
+  /* ── PYRAMID ── every wall edge fans to central peak */
+  if (type === 'pyramid') {
+    const peak = {x:cx, y:cy, z:WALL_H + pitchH};
+    for (let i=0;i<n;i++){
+      const j=(i+1)%n;
+      faces.push(makeFace([base[i], base[j], peak], rFill, rStroke, 1.4));
+    }
+    return faces;
+  }
+
+  /* ── MANSARD ── two-band stepped roof + small top cap */
+  if (type === 'mansard') {
+    const k1=0.20, k2=0.42;
+    const z1=WALL_H+pitchH*0.55, z2=WALL_H+pitchH*0.88, zT=WALL_H+pitchH;
+    const r1=ring.map(p=>({x:cx+(p.x-cx)*(1-k1), y:cy+(p.y-cy)*(1-k1), z:z1}));
+    const r2=ring.map(p=>({x:cx+(p.x-cx)*(1-k2), y:cy+(p.y-cy)*(1-k2), z:z2}));
+    const peak={x:cx, y:cy, z:zT};
+    for(let i=0;i<n;i++){
+      const j=(i+1)%n;
+      faces.push(makeFace([base[i], base[j], r1[j], r1[i]], rFill,  rStroke, 1.4));
+      faces.push(makeFace([r1[i],   r1[j],   r2[j], r2[i]], rFill2, rStroke, 1.2));
+    }
+    /* top cap triangles */
+    for(let i=0;i<n;i++){
+      const j=(i+1)%n;
+      faces.push(makeFace([r2[i], r2[j], peak], rgba(color,.16), rStroke, 1.0));
+    }
+    return faces;
+  }
+
+  /* ── GABLE / HIP / SHED ──
+     Elevate each wall-top vertex according to the roof geometry,
+     then fan-triangulate the elevated polygon from its ridgeline centre.
+
+     Why fan triangulation works here:
+       • For convex polygons – mathematically exact.
+       • For concave polygons (L-shapes etc.) – visually correct because
+         depth-sorting still paints the right order, and each triangle
+         is a proper planar section of the roof surface.
+  */
+  function elevZ(p) {
+    if (type === 'shed') {
+      /* slope along the short axis */
+      return WALL_H + pitchH * (isWide ? (p.y-minY)/spanY : (p.x-minX)/spanX);
+    }
+    if (type === 'gable') {
+      /* ridge runs along long axis; height falls off perpendicular to it */
+      const d = isWide ? Math.abs(p.y-cy)/(spanY/2) : Math.abs(p.x-cx)/(spanX/2);
+      return WALL_H + pitchH * Math.max(0, 1-d);
+    }
+    if (type === 'hip') {
+      /* height proportional to minimum distance to any edge (Chebyshev) */
+      const dx=Math.abs(p.x-cx)/(spanX/2), dy=Math.abs(p.y-cy)/(spanY/2);
+      return WALL_H + pitchH * Math.max(0, 1-Math.max(dx,dy));
+    }
+    return WALL_H;
+  }
+
+  const elevated = ring.map(p => ({x:p.x, y:p.y, z:elevZ(p)}));
+
+  /* Fan centre: the ridge centre at peak height (gable/hip),
+     or the geometric centre at mid-height (shed) */
+  const peakZ = (type==='shed') ? WALL_H+pitchH*0.5 : WALL_H+pitchH;
+  const fan   = {x:cx, y:cy, z:peakZ};
+
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n;
+    faces.push(makeFace([elevated[i], elevated[j], fan], rFill, rStroke, 1.4));
   }
   return faces;
 }
@@ -376,54 +515,57 @@ function render3DPreview(){
   const sceneBox=getBBox(contours.flat());
   const spanX=Math.max(sceneBox.w,1),spanY=Math.max(sceneBox.h,1);
 
-  /* 1) cam.ox/oy = 0,0 dan boshlaymiz — keyin avtomatik offset qo'shamiz */
+  const roofExtra = roofConfig.pitch * 1.2;   // extra vertical room for roof
   const cam={
     yaw:PS.yaw,pitch:PS.pitch,
     distance:Math.max(spanX,spanY)*1.9+520,
-    scale:Math.min((pv.width*0.55)/spanX,(pv.height*0.50)/spanY)*PS.zoom,
+    scale:Math.min((pv.width*0.55)/spanX,(pv.height*0.46)/(spanY+roofExtra))*PS.zoom,
     ox:0, oy:0
   };
 
-  /* 2) Barcha modelning screen-space BBox sini topamiz */
+  /* Auto-centre model on canvas */
   const allScreen=[];
   contours.forEach(contour=>{
     contour.forEach(p=>{
       const wx=p.x-sceneBox.cx, wy=-(p.y-sceneBox.cy);
       allScreen.push(project3D(wx,wy,0,cam));
-      allScreen.push(project3D(wx,wy,WALL_H,cam));
+      allScreen.push(project3D(wx,wy,WALL_H+roofConfig.pitch,cam));
     });
   });
   const sb=getBBox(allScreen);
-
-  /* 3) Model markazini canvas markaziga moslashtirish */
   const marginTop=16;
   cam.ox=pv.width/2  - sb.cx;
   cam.oy=(marginTop+(pv.height-marginTop)/2) - sb.cy;
 
   drawPreviewGrid(cam,spanX,spanY);
 
-  /* Ko'lanka zamin proyeksiyasida */
+  /* Shadow ellipse */
   const gc=project3D(0,0,0,cam);
   pctx.beginPath();pctx.ellipse(gc.x,gc.y+6,pv.width*0.20,12,0,0,Math.PI*2);
   pctx.fillStyle='rgba(0,0,0,.18)';pctx.fill();
 
+  /* Build all faces: walls + roof */
   const faces=[];
   contours.forEach((contour,si)=>{
     faces.push(...buildHouseFaces(shapes[si],contour,sceneBox.cx,sceneBox.cy,SHC[si%SHC.length],selShape===si));
+    faces.push(...buildRoofFaces (shapes[si],contour,sceneBox.cx,sceneBox.cy,SHC[si%SHC.length],selShape===si));
   });
   faces.sort((a,b)=>faceAvgDepth(b.pts,cam.yaw,cam.pitch)-faceAvgDepth(a.pts,cam.yaw,cam.pitch));
   faces.forEach(f=>drawFace3D(f,cam));
 
-  /* Labellar — Y ni ham invert qilish kerak */
+  /* Shape labels */
   contours.forEach((contour,si)=>{
     const bb=getBBox(contour);
-    const lp=project3D(bb.cx-sceneBox.cx,-(bb.cy-sceneBox.cy),WALL_H*1.12,cam);
+    const lp=project3D(bb.cx-sceneBox.cx,-(bb.cy-sceneBox.cy),WALL_H+roofConfig.pitch*1.15,cam);
     pctx.fillStyle=(selShape===si)?'#e6a817':SHC[si%SHC.length];
     pctx.font='bold 11px monospace';pctx.fillText('#'+(si+1),lp.x-10,lp.y);
   });
-  if(noteEl) noteEl.textContent=selShape!=null
-    ?'Drag = orbit · pinch/wheel = zoom · tanlangan shakl'
-    :`${shapes.length} ta shakl · drag = orbit · pinch/wheel = zoom`;
+
+  /* Status note */
+  const rName = ROOF_NAMES[roofConfig.type] || roofConfig.type;
+  if(noteEl) noteEl.textContent = selShape!=null
+    ? `Tom: ${rName} · drag = orbit · tanlangan #${selShape+1}`
+    : `${shapes.length} ta shakl · Tom: ${rName} · drag = orbit`;
 }
 
 /* ============================================================
@@ -502,7 +644,6 @@ cv.addEventListener('pointerdown',e=>{
   const sp=cvSP(e);
   cvPtrs.set(e.pointerId,sp);
 
-  /* two-finger: pan + pinch */
   if(cvPtrs.size>=2){
     drag=null;
     const pts=[...cvPtrs.values()];
@@ -515,7 +656,6 @@ cv.addEventListener('pointerdown',e=>{
     return;
   }
 
-  /* single pointer */
   cvPinch=null;
   const w=s2w(sp.x,sp.y);
 
@@ -554,7 +694,6 @@ cv.addEventListener('pointermove',e=>{
   const sp=cvSP(e);
   if(cvPtrs.has(e.pointerId)) cvPtrs.set(e.pointerId,sp);
 
-  /* two-finger pinch/pan */
   if(cvPtrs.size===2&&cvPinch){
     const pts=[...cvPtrs.values()];
     const dist=pDist(pts[0],pts[1]),mid=pMid(pts[0],pts[1]);
@@ -567,7 +706,6 @@ cv.addEventListener('pointermove',e=>{
     renderCanvas();return;
   }
 
-  /* single pointer */
   const w=s2w(sp.x,sp.y);
   mouse={
     x:snap&&appMode==='draw'?Math.round(w.x/GRID)*GRID:w.x,
