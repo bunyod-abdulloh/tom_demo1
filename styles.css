@@ -305,72 +305,56 @@ body{
    MOBILE  (≤700px)
 ============================================================ */
 @media (max-width:700px){
-  body{overflow:auto}
-
-  /* --- header --- */
-  .hdr{
-    padding:calc(10px + env(safe-area-inset-top)) 12px 10px;
-    align-items:flex-start;
+  body{
+    overflow:hidden;
   }
-  .logo{font-size:22px}
-  .logo-sub{font-size:8px}
-  .badge{font-size:9px;padding:4px 8px}
 
-  /* --- toolbar + qbar: horizontal scroll, no wrap --- */
-  .toolbar,
-  .qbar{
-    padding:8px 10px;gap:6px;
-    flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+  .layout{
+    display:flex;
+    flex-direction:column;
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
   }
-  .toolbar::-webkit-scrollbar,
-  .qbar::-webkit-scrollbar{display:none}
-  .btn,.qbtn{font-size:10px;padding:8px 12px;min-height:38px;}
-  .qi{width:74px;font-size:14px;min-height:38px;}
-  .sep,.qsep{display:none}
 
-  /* --- main layout: single column --- */
-  .layout{display:flex;flex-direction:column;overflow:visible;}
-  .canvas-col,.right-col{overflow:visible;}
+  .canvas-col,
+  .right-col{
+    overflow:visible;
+  }
+
   .canvas-wrap{
-    height:44dvh;min-height:280px;max-height:480px;
-    touch-action:none;
+    height:44dvh;
+    min-height:280px;
+    max-height:480px;
+    flex:none;
   }
 
-  /* --- canvas zoom buttons: slightly smaller --- */
-  .cv-tools{right:8px;top:8px;gap:5px;}
-  .cv-btn{min-width:36px;height:36px;font-size:14px;}
-  .cv-btn-reset{min-width:48px;font-size:9px;}
+  .panel-title{
+    font-size:11px;
+    letter-spacing:1px;
+    padding:8px 10px;
+  }
 
-  /* --- 3D preview --- */
-  .preview-canvas-wrap{height:200px;}
-  .preview-title{font-size:15px}
-  .preview-chip{font-size:9px;padding:4px 8px}
-  .preview-meta{font-size:8px}
-  .pv-btn{min-width:36px;height:36px;font-size:14px;}
-  .pv-btn-reset{min-width:48px;font-size:9px;}
+  .dims-scroll{
+    flex:none;
+    overflow:visible;
+    max-height:none;
+    padding:10px;
+  }
 
-  /* --- hint --- */
-  .hint{font-size:9px;padding:6px 12px;}
-
-  /* --- dims --- */
-  .dims-scroll{overflow:visible;max-height:none;padding-bottom:10px;}
-  .shape-card{padding:12px;}
-  .shape-card-title{font-size:11px;}
-  .seg-in{font-size:14px;min-height:38px;}
-  .seg-row{gap:6px;}
-
-  /* ---- RESULT: fixed at bottom so it is always visible ---- */
   .result{
-    position:fixed;
-    bottom:0;left:0;right:0;
+    position:sticky;
+    bottom:0;
     z-index:20;
     padding:10px 14px calc(10px + env(safe-area-inset-bottom));
     background:var(--bg);
     border-top:2px solid var(--border);
     box-shadow:0 -8px 24px rgba(0,0,0,.30);
   }
-  .res-val{font-size:30px}
 
-  /* space so content doesn't hide behind fixed result bar */
-  .right-col{padding-bottom:72px;}
+  .res-val{
+    font-size:30px;
+  }
 }

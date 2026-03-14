@@ -200,11 +200,11 @@ function drawGrid(){
   const gx1=Math.ceil(((cv.width -view.tx)/s)/GRID)*GRID;
   const gy1=Math.ceil(((cv.height-view.ty)/s)/GRID)*GRID;
   for(let x=gx0;x<=gx1;x+=GRID){
-    ctx.strokeStyle=(x/GRID)%5===0?'#1c2a3a':'#111b27';
+    ctx.strokeStyle=(x/GRID)%5===0?'#24364d':'#162535';
     ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(x,gy0);ctx.lineTo(x,gy1);ctx.stroke();
   }
   for(let y=gy0;y<=gy1;y+=GRID){
-    ctx.strokeStyle=(y/GRID)%5===0?'#1c2a3a':'#111b27';
+    ctx.strokeStyle=(y/GRID)%5===0?'#24364d':'#162535';
     ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(gx0,y);ctx.lineTo(gx1,y);ctx.stroke();
   }
   ctx.fillStyle='#1e2d3d';ctx.font=`${8/s}px monospace`;
