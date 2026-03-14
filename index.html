@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <title>RoofCAD Pro – Tom Hisoblash</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<div class="hdr">
+    <div>
+        <div class="logo">PRO<span>MET</span></div>
+        <div class="logo-sub">TOM HARAJATLARINI HISOBLASH (2D + 3D PREVIEW)</div>
+    </div>
+    <span class="badge badge-draw" id="mode-badge">CHIZISH REJIMI</span>
+</div>
+
+<!-- ═══ TOOLBAR ═══ -->
+<div class="toolbar">
+    <button class="btn active" id="btn-draw" onclick="setAppMode('draw')">&#9998; CHIZISH</button>
+    <button class="btn" id="btn-edit" onclick="setAppMode('edit')">&#8982; TAHRIRLASH</button>
+    <div class="sep"></div>
+    <button class="btn" onclick="undoAction()">&#8617; ORTGA</button>
+    <button class="btn" style="color:var(--green);border-color:rgba(63,185,80,.3)" onclick="newShape()">+ YANGI</button>
+    <button class="btn" style="color:var(--red);border-color:rgba(248,81,73,.3)" onclick="resetAll()">&#10005; TOZALA
+    </button>
+    <div class="sep"></div>
+    <button class="btn active" id="btn-snap" onclick="toggleSnap()">&#8862; SNAP</button>
+    <div class="sep"></div>
+    <span style="font-size:9px;color:var(--muted)">
+    Nuqta=surish &bull; &#8960;=egri &bull; ichida ushla=ko'chir &bull; 2 barmoq=zoom/pan
+  </span>
+</div>
+
+<!-- ═══ QUICK SHAPE BAR ═══ -->
+<!--<div class="qbar">-->
+<!--    <span class="ql" style="color:var(&#45;&#45;amber)">&#9889; TEZKOR:</span>-->
+<!--    <span class="ql">Kenglik</span>-->
+<!--    <input class="qi" id="qw" type="number" value="10" min="1" max="100" step="0.5">-->
+<!--    <span class="qx">m &#215;</span>-->
+<!--    <span class="ql">Uzunlik</span>-->
+<!--    <input class="qi" id="ql_" type="number" value="15" min="1" max="100" step="0.5">-->
+<!--    <span class="qx">m</span>-->
+<!--    <button class="qbtn" onclick="addQuickRect()">+ TO'RTBURCHAK</button>-->
+<!--    <div class="qsep"></div>-->
+<!--    <span class="ql">L-SHAKL:</span>-->
+<!--    <input class="qi" id="lw1" type="number" value="10" min="1" step="0.5" title="Asosiy kenglik">-->
+<!--    <span class="qx">&#215;</span>-->
+<!--    <input class="qi" id="ll1" type="number" value="12" min="1" step="0.5" title="Asosiy uzunlik">-->
+<!--    <span class="qx">/</span>-->
+<!--    <input class="qi" id="lw2" type="number" value="5" min="1" step="0.5" title="L qism kengligi">-->
+<!--    <span class="qx">&#215;</span>-->
+<!--    <input class="qi" id="ll2" type="number" value="6" min="1" step="0.5" title="L qism uzunligi">-->
+<!--    <button class="qbtn" onclick="addLShape()">+ L-SHAKL</button>-->
+<!--</div>-->
+
+<!-- ═══ MAIN LAYOUT ═══ -->
+<div class="layout">
+
+    <!-- ─── 2D Canvas column ─── -->
+    <div class="canvas-col">
+        <div class="canvas-wrap" id="cwrap">
+            <canvas id="cv"></canvas>
+
+            <!-- Zoom controls (top-right of canvas) -->
+            <div class="cv-tools">
+                <button class="cv-btn" onclick="zoomAt(1.3, cv.width/2, cv.height/2)">+</button>
+                <button class="cv-btn" onclick="zoomAt(1/1.3, cv.width/2, cv.height/2)">−</button>
+                <button class="cv-btn cv-btn-reset" onclick="resetCanvasView()">RESET</button>
+            </div>
+        </div>
+
+        <div class="hint" id="hint">
+            &#9312; Nuqtalar qo'ying &rarr;
+            &#9313; Birinchi nuqtaga yaqin bosib yoping &rarr;
+            &#9314; Mobil: 1 barmoq = chizish, 2 barmoq = zoom/pan &rarr;
+            &#9315; Scroll yoki +/− = zoom
+        </div>
+    </div>
+
+    <!-- ─── Right panel ─── -->
+    <div class="right-col">
+
+        <!-- 3D Preview -->
+        <div class="panel-title">// 3D PREVIEW</div>
+        <div class="preview-wrap">
+            <div class="preview-card">
+
+                <div class="preview-head">
+                    <div>
+                        <div class="preview-title">3D KO'RINISH</div>
+<!--                        <div class="preview-sub">3D ko'rinish</div>-->
+                    </div>
+                    <div class="preview-chip" id="pv-angle">&#8634; 315&deg;</div>
+                </div>
+
+                <div class="preview-canvas-wrap">
+                    <canvas id="pv"></canvas>
+                    <div class="pv-tools">
+                        <button class="pv-btn" onclick="zoomPreview(1.15)">+</button>
+                        <button class="pv-btn" onclick="zoomPreview(1/1.15)">−</button>
+                        <button class="pv-btn pv-btn-reset" onclick="resetPreviewCamera()">RESET</button>
+                    </div>
+                </div>
+
+                <div class="preview-meta">
+                    <span id="pv-note">3D preview endi uy shakli bilan chiziladi</span>
+                    <span>Drag = orbit</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dims panel -->
+        <div class="panel-title">// O'LCHAMLAR</div>
+        <div class="dims-scroll" id="dims">
+            <div class="empty-state">
+                Shakl chizing yoki<br>tezkor shakl qo'shing<br><br>
+                <span style="color:var(--amber)">&#8593;</span> Yuqoridagi sariq inputlarga<br>o'lcham kiriting
+            </div>
+        </div>
+
+        <!-- Result -->
+        <div class="result">
+            <div class="res-label">Jami Zamin Yuzasi</div>
+            <div class="res-val" id="area-val">0.00 m&#178;</div>
+            <div class="res-sub">Har bir shakl mustaqil hisoblanadi</div>
+        </div>
+
+    </div><!-- .right-col -->
+</div><!-- .layout -->
+
+<script src="app.js"></script>
+</body>
+</html>
