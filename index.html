@@ -316,9 +316,9 @@
             <span>Qo'ng'iroq</span></a>
     </div>
     <nav class="nav">
-        <button class="nt on" data-p="calc" onclick="goP('calc')">Hisoblash</button>
-        <button class="nt" data-p="about" onclick="goP('about')">Kompaniya</button>
-        <button class="nt" data-p="portfolio" onclick="goP('portfolio')">Qilingan ishlar</button>
+        <button class="nt on" data-p="calc" onclick="goP('calc')">Kalkulyator</button>
+        <button class="nt" data-p="about" onclick="goP('about')">Biz haqimizda</button>
+        <button class="nt" data-p="portfolio" onclick="goP('portfolio')">Ishlarimiz</button>
     </nav>
 </header>
 
@@ -483,17 +483,13 @@
                 <div class="rpn-h"><h3>Profnastil parametrlari</h3></div>
                 <div class="pw">
                     <div class="pg2">
-                        <div class="pgl">Profnastil turi</div>
-                        <div class="pps" id="pt-type">
-                            <button class="pp on" data-v="C8" onclick="sPT(this)">C-8</button>
-                            <button class="pp" data-v="C10" onclick="sPT(this)">C-10</button>
-                            <button class="pp" data-v="C20" onclick="sPT(this)">C-20</button>
-                            <button class="pp" data-v="C21" onclick="sPT(this)">C-21</button>
-                            <button class="pp" data-v="HC35" onclick="sPT(this)">HC-35</button>
-                            <button class="pp" data-v="HC44" onclick="sPT(this)">HC-44</button>
-                            <button class="pp" data-v="H57" onclick="sPT(this)">H-57</button>
-                            <button class="pp" data-v="H60" onclick="sPT(this)">H-60</button>
-                            <button class="pp" data-v="H75" onclick="sPT(this)">H-75</button>
+                        <div class="pgl">Ishlab chiqaruvchi davlat</div>
+                        <div class="pps" id="pt-cn">
+                            <button class="pp on" data-v="samarkand" onclick="sCN(this)">Samarqand</button>
+                            <button class="pp" data-v="tashkent" onclick="sCN(this)">Toshkent</button>
+                            <button class="pp" data-v="china" onclick="sCN(this)">Xitoy</button>
+                            <button class="pp" data-v="russia" onclick="sCN(this)">Rossiya</button>
+
                         </div>
                     </div>
                     <div class="pg2">
@@ -506,15 +502,6 @@
                             <button class="pp" data-v="0.55" onclick="sTH(this)">0.55</button>
                             <button class="pp" data-v="0.60" onclick="sTH(this)">0.60</button>
                             <button class="pp" data-v="0.70" onclick="sTH(this)">0.70</button>
-                        </div>
-                    </div>
-                    <div class="pg2">
-                        <div class="pgl">Ishlab chiqaruvchi davlat</div>
-                        <div class="pps" id="pt-cn">
-                            <button class="pp" data-v="china" onclick="sCN(this)">🇨🇳 Xitoy</button>
-                            <button class="pp on" data-v="russia" onclick="sCN(this)">🇷🇺 Rossiya</button>
-                            <button class="pp" data-v="korea" onclick="sCN(this)">🇰🇷 Koreya</button>
-                            <button class="pp" data-v="kazakhstan" onclick="sCN(this)">🇰🇿 Qozog'iston</button>
                         </div>
                     </div>
                 </div>
