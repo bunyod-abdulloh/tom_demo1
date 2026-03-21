@@ -442,24 +442,15 @@
                 </button>
             </div>
             <div class="rpn vis" data-t="roof">
-                <div class="rpn-h"><h3>Tom turi va balandligi</h3></div>
+                <div class="rpn-h"><h3>Tom turi</h3></div>
                 <div class="rw">
-                    <div class="rg">
-                        <button class="rf" data-r="flat" onclick="setRoof('flat')">
-                            <div class="rf-i">
-                                <svg viewBox="0 0 52 32" fill="none">
-                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
-                                          stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                    <line x1="4" y1="18" x2="48" y2="18" stroke="currentColor" stroke-width="2.5"/>
-                                </svg>
-                            </div>
-                            <span>Tekis</span></button>
+                    <div class="rg" style="grid-template-columns:repeat(3,1fr)">
                         <button class="rf" data-r="shed" onclick="setRoof('shed')">
                             <div class="rf-i">
                                 <svg viewBox="0 0 52 32" fill="none">
-                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
+                                    <rect x="4" y="20" width="44" height="8" fill="rgba(34,197,94,.03)"
                                           stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                    <polygon points="4,8 48,18 4,18" fill="rgba(34,197,94,.05)" stroke="currentColor"
+                                    <polygon points="4,8 48,20 4,20" fill="rgba(34,197,94,.05)" stroke="currentColor"
                                              stroke-width="2"/>
                                 </svg>
                             </div>
@@ -467,54 +458,25 @@
                         <button class="rf on" data-r="gable" onclick="setRoof('gable')">
                             <div class="rf-i">
                                 <svg viewBox="0 0 52 32" fill="none">
-                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
+                                    <rect x="4" y="20" width="44" height="8" fill="rgba(34,197,94,.03)"
                                           stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                    <polygon points="4,18 26,4 48,18" fill="rgba(34,197,94,.05)" stroke="currentColor"
+                                    <polygon points="4,20 26,4 48,20" fill="rgba(34,197,94,.05)" stroke="currentColor"
                                              stroke-width="2"/>
                                 </svg>
                             </div>
-                            <span>Tizma</span></button>
-                        <button class="rf" data-r="hip" onclick="setRoof('hip')">
+                            <span>Ikki tomonli</span></button>
+                        <button class="rf" data-r="doppili" onclick="setRoof('doppili')">
                             <div class="rf-i">
                                 <svg viewBox="0 0 52 32" fill="none">
-                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
+                                    <rect x="4" y="20" width="44" height="8" fill="rgba(34,197,94,.03)"
                                           stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                    <polygon points="4,18 14,7 38,7 48,18" fill="rgba(34,197,94,.05)"
+                                    <polygon points="4,20 10,10 22,5 30,5 42,10 48,20" fill="rgba(34,197,94,.05)"
                                              stroke="currentColor" stroke-width="2"/>
-                                    <line x1="14" y1="7" x2="38" y2="7" stroke="currentColor" stroke-width="1.5"/>
+                                    <line x1="22" y1="5" x2="30" y2="5" stroke="currentColor" stroke-width="1.5"/>
                                 </svg>
                             </div>
-                            <span>Hip</span></button>
-                        <button class="rf" data-r="pyramid" onclick="setRoof('pyramid')">
-                            <div class="rf-i">
-                                <svg viewBox="0 0 52 32" fill="none">
-                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
-                                          stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                    <polygon points="4,18 26,2 48,18" fill="rgba(34,197,94,.05)" stroke="currentColor"
-                                             stroke-width="2"/>
-                                </svg>
-                            </div>
-                            <span>Piramida</span></button>
-                        <button class="rf" data-r="mansard" onclick="setRoof('mansard')">
-                            <div class="rf-i">
-                                <svg viewBox="0 0 52 32" fill="none">
-                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
-                                          stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                    <polygon points="4,18 9,11 16,6 36,6 43,11 48,18" fill="rgba(34,197,94,.05)"
-                                             stroke="currentColor" stroke-width="2"/>
-                                    <line x1="16" y1="6" x2="36" y2="6" stroke="currentColor" stroke-width="1.5"/>
-                                </svg>
-                            </div>
-                            <span>Mansard</span></button>
+                            <span>Do'ppili</span></button>
                     </div>
-                    <div class="pr"><span class="prl">Balandlik</span>
-                        <div style="flex:1;position:relative">
-                            <div class="prt">
-                                <div class="prf" id="pf" style="width:36%"></div>
-                            </div>
-                            <input type="range" class="prs" id="psl" min="0.5" max="6" step="0.1" value="2.5"
-                                   oninput="setPitch(this.value)"></div>
-                        <span class="prv" id="pv">2.5 m</span></div>
                 </div>
             </div>
             <div class="rpn" data-t="prof">
@@ -710,10 +672,10 @@
     let shapes=[],cur=null,mode='draw',snap=true,sel=null,hovA=null,hovP=null,drg=null,ms={x:0,y:0},dirty=true;
     const V={s:1,tx:0,ty:0,mn:.07,mx:14};const ptrs=new Map();let pinch=null;
     const cv=document.getElementById('cv'),cx=cv.getContext('2d');
-    const cfg={roof:'gable',pitch:2.5,type:'C8',thick:'0.40',country:'russia'};
+    const cfg={roof:'gable',type:'C8',thick:'0.40',country:'russia'};
     const PRICES={china:{0.35:42000,0.40:48000,0.45:54000,0.50:60000,0.55:67000,0.60:74000,0.70:88000},russia:{0.35:55000,0.40:62000,0.45:70000,0.50:78000,0.55:86000,0.60:95000,0.70:112000},korea:{0.35:58000,0.40:66000,0.45:74000,0.50:83000,0.55:92000,0.60:102000,0.70:120000},kazakhstan:{0.35:45000,0.40:52000,0.45:58000,0.50:65000,0.55:72000,0.60:80000,0.70:95000}};
     const TMUL={C8:1,C10:1.02,C20:1.08,C21:1.10,HC35:1.18,HC44:1.25,H57:1.32,H60:1.38,H75:1.48};
-    const RMUL={flat:1.0,shed:1.15,gable:1.22,hip:1.30,pyramid:1.28,mansard:1.45};
+    const RMUL={shed:1.15,gable:1.22,doppili:1.35};
     const RAL=[{c:'1014',n:"Sarg'ish",h:'#E1CC4F'},{c:'1015',n:"Och sarg'ish",h:'#E6D690'},{c:'2004',n:"To'q sariq",h:'#E75B12'},{c:'3003',n:'Yoqut qizil',h:'#8D1D2C'},{c:'3005',n:"Qizil-to'q",h:'#5E2028'},{c:'3009',n:'Oksid qizil',h:'#6D342D'},{c:'3011',n:'Qizil-jigarrang',h:'#792423'},{c:'5002',n:"Ko'k",h:'#00387B'},{c:'5005',n:"Signal ko'k",h:'#154889'},{c:'5021',n:"Suv ko'k",h:'#07737A'},{c:'6002',n:'Yashil',h:'#325928'},{c:'6005',n:"Yashil-to'q",h:'#0F4336'},{c:'6020',n:'Xrom yashil',h:'#37422F'},{c:'7004',n:'Kulrang',h:'#9EA0A1'},{c:'7024',n:'Grafit',h:'#474A50'},{c:'7035',n:'Och kulrang',h:'#CBD0CC'},{c:'8004',n:'Mis jigarrang',h:'#8D4931'},{c:'8017',n:'Shokolad',h:'#44322D'},{c:'9002',n:'Oq-kulrang',h:'#E0DDD4'},{c:'9003',n:'Signal oq',h:'#F4F4F4'},{c:'9005',n:'Qora',h:'#0A0A0D'},{c:'9006',n:'Oq alyuminiy',h:'#A5A8A6'}];
     const PROJ=[{t:'Chorsu turar-joy',d:'4 qavatli binosiga HC-35 profnastil bilan tom yopildi.',a:'1 200 m²',tp:'HC-35',cl:'#5E2028',y:'2024'},{t:'Toshkent 32-maktab',d:'Maktab binosiga yangi tom yopish ishlari.',a:'2 400 m²',tp:'H-60',cl:'#154889',y:'2024'},{t:'Chilonzor savdo markazi',d:'Mansard tipidagi tom loyihasi bajarildi.',a:'3 200 m²',tp:'H-75',cl:'#474A50',y:'2023'},{t:'Samarqand mehmonxonasi',d:'5 yulduzli mehmonxona uchun premium tom.',a:'1 800 m²',tp:'HC-44',cl:'#44322D',y:'2023'},{t:"Farg'ona sanoat binosi",d:'Ishlab chiqarish sehi uchun tom yopish.',a:'5 600 m²',tp:'H-75',cl:'#9EA0A1',y:'2023'},{t:'Namangan turar-joy',d:'120 xonadonlik yangi turar-joy majmuasi.',a:'4 200 m²',tp:'C-21',cl:'#325928',y:'2022'}];
 
@@ -721,7 +683,6 @@
     function sTH(e){document.querySelectorAll('#pt-th .pp').forEach(b=>b.classList.remove('on'));e.classList.add('on');cfg.thick=e.dataset.v;upC();hap('impactLight')}
     function sCN(e){document.querySelectorAll('#pt-cn .pp').forEach(b=>b.classList.remove('on'));e.classList.add('on');cfg.country=e.dataset.v;upC();hap('impactLight')}
     function setRoof(r){cfg.roof=r;document.querySelectorAll('.rf').forEach(b=>b.classList.toggle('on',b.dataset.r===r));upC();hap('impactLight')}
-    function setPitch(v){cfg.pitch=parseFloat(v);document.getElementById('pv').textContent=parseFloat(v).toFixed(1)+' m';document.getElementById('pf').style.width=((v-.5)/5.5*100)+'%';upC()}
     function initClr(){document.getElementById('cg').innerHTML=RAL.map((c,i)=>'<div class="cl'+(i===4?' on':'')+'" style="background:'+c.h+'" data-i="'+i+'" onclick="pickClr('+i+')"></div>').join('')}
     function pickClr(i){document.querySelectorAll('.cl').forEach(c=>c.classList.remove('on'));document.querySelectorAll('.cl')[i].classList.add('on');document.getElementById('cp').style.background=RAL[i].h;document.getElementById('ccl').textContent='RAL '+RAL[i].c;document.getElementById('cnl').textContent=RAL[i].n;hap('selectionChanged')}
     function initPort(){document.getElementById('pgrid').innerHTML=PROJ.map(p=>'<div class="pc"><div class="pc-img"><div class="pc-bg" style="background:linear-gradient(135deg,'+p.cl+',#080c14)"></div><span class="pc-bd">'+p.tp+'</span></div><div class="pc-nf"><h3>'+p.t+'</h3><p>'+p.d+'</p><div class="pc-m"><span><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1"/></svg>'+p.a+'</span><span><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.1"/><path d="M6 3V6H9" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>'+p.y+'</span></div></div></div>').join('')}
@@ -772,7 +733,7 @@
     function upD(){const el=document.getElementById('dims');if(!shapes.length){el.innerHTML='<div class="empty"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" opacity=".3"><rect x="4" y="8" width="32" height="24" rx="3" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/><path d="M14 20H26M20 14V26" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".5"/></svg><p>Shakl chizing</p></div>';return}el.innerHTML=shapes.map((sh,si)=>{const rows=sh.pts.map((p,i)=>{const j=(i+1)%sh.pts.length,b=sh.segs[i].bulge||0,vl=(aLen(p.x,p.y,sh.pts[j].x,sh.pts[j].y,b)/G).toFixed(2),ml=sh.lens[i]!=null?sh.lens[i]:vl;const tag=b?'<span class="st arc">EGRI</span>':'<span class="st lin">TO\'G\'RI</span>';return'<div class="sr">'+tag+'<span class="sl">'+ALP[i]+(si+1)+'\u2013'+ALP[j]+(si+1)+'</span><input class="si" type="number" value="'+ml+'" min="0.01" step="0.1" inputmode="decimal" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()" oninput="setL('+si+','+i+',this.value)"><span class="su">m</span></div>'}).join('');return'<div class="sc'+(sel===si?' sel':'')+'" onclick="pickSh('+si+')"><div class="sct"><span>\u25C6 SHAKL #'+(si+1)+'</span><button class="scd" onclick="event.stopPropagation();delSh('+si+')">\u2715</button></div>'+rows+'</div>'}).join('')}
     function pickSh(i){sel=i;if(mode!=='edit')setMode('edit');dirty=true;redraw();hap('selectionChanged')}
     function setL(si,i,v){const n=parseFloat(v);if(!isNaN(n)&&n>0){shapes[si].lens[i]=n;render();upC()}}
-    function calcA(){let t=0;shapes.forEach(sh=>{if(!sh.closed)return;const va=sArea(sh)/(G*G);let vP=0,mP=0;sh.pts.forEach((p,i)=>{const j=(i+1)%sh.pts.length,b=sh.segs[i].bulge||0,vis=aLen(p.x,p.y,sh.pts[j].x,sh.pts[j].y,b)/G;vP+=vis;mP+=(sh.lens[i]!=null?sh.lens[i]:vis)});const sc=vP>0?Math.pow(mP/vP,2):1;t+=va*sc});return t*(RMUL[cfg.roof]||1)*(1+(cfg.pitch-.5)*.04)}
+    function calcA(){let t=0;shapes.forEach(sh=>{if(!sh.closed)return;const va=sArea(sh)/(G*G);let vP=0,mP=0;sh.pts.forEach((p,i)=>{const j=(i+1)%sh.pts.length,b=sh.segs[i].bulge||0,vis=aLen(p.x,p.y,sh.pts[j].x,sh.pts[j].y,b)/G;vP+=vis;mP+=(sh.lens[i]!=null?sh.lens[i]:vis)});const sc=vP>0?Math.pow(mP/vP,2):1;t+=va*sc});return t*(RMUL[cfg.roof]||1)}
     function calcCo(a){return Math.round(a*(PRICES[cfg.country]?.[cfg.thick]||60000)*(TMUL[cfg.type]||1))}
     function fmt(n){return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')}
     function upC(){const a=calcA(),c=calcCo(a);document.getElementById('ra').textContent=a.toFixed(2)+' m\u00B2';document.getElementById('rc').textContent=fmt(c)+' so\'m';const cn={china:'Xitoy',russia:'Rossiya',korea:'Koreya',kazakhstan:"Qozog'iston"};document.getElementById('rs').textContent=cfg.type+' \u00B7 '+cfg.thick+'mm \u00B7 '+(cn[cfg.country]||cfg.country)}
