@@ -1,14 +1,24 @@
 /* ============================================================
-   TELEGRAM WEBAPP
+   TELEGRAM WEBAPP INTEGRATION
 ============================================================ */
 try {
   if (window.Telegram && window.Telegram.WebApp) {
     const tg = window.Telegram.WebApp;
     tg.ready();
-    if (typeof tg.expand   === 'function') tg.expand();
+    if (typeof tg.expand === 'function') tg.expand();
     if (typeof tg.disableVerticalSwipes === 'function') tg.disableVerticalSwipes();
+    /* Apply Telegram theme if available */
+    if (tg.themeParams) {
+      const tp = tg.themeParams;
+      if (tp.bg_color) document.documentElement.style.setProperty('--tg-bg', tp.bg_color);
+    }
+    /* Haptic feedback helper */
+    window.haptic = (type) => {
+      try { if (tg.HapticFeedback) tg.HapticFeedback[type]?.(); } catch(e){}
+    };
   }
 } catch(e) {}
+if (!window.haptic) window.haptic = () => {};
 
 /* ============================================================
    CONSTANTS & STATE
@@ -17,7 +27,7 @@ const GRID      = 40;
 const CLOSE_DIST = 18;
 const HANDLE_R   = 9;
 const ALP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const SHC = ['#58a6ff','#3fb950','#bc8cff','#fb923c','#f85149','#22d3ee'];
+const SHC = ['#5b9cf5','#4cce7b','#a78bfa','#f0a04b','#f06b5e','#56d4c8'];
 const WALL_H = GRID * 3;
 
 let shapes   = [];
@@ -30,6 +40,9 @@ let hovPt    = null;
 let drag     = null;
 let mouse    = { x:0, y:0 };
 let dimsDirty = true;
+
+/* Mobile tab state */
+let activeTab = 'preview';
 
 /* 2D canvas view transform */
 const view = { scale:1, tx:0, ty:0, minScale:0.07, maxScale:14 };
@@ -56,8 +69,8 @@ const PS = {
    ROOF CONFIGURATION
 ============================================================ */
 const roofConfig = {
-  type: 'gable',        // flat | shed | gable | hip | pyramid | mansard
-  pitch: GRID * 2.5     // roof height in world units (2.5 m default)
+  type: 'gable',
+  pitch: GRID * 2.5
 };
 
 const ROOF_NAMES = {
@@ -74,6 +87,7 @@ function setRoofType(type) {
   document.querySelectorAll('.roof-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.roof === type)
   );
+  haptic('impactLight');
   render3DPreview();
 }
 
@@ -82,6 +96,41 @@ function setRoofPitch(val) {
   const el = document.getElementById('pitch-val');
   if (el) el.textContent = parseFloat(val).toFixed(1) + 'm';
   render3DPreview();
+}
+
+/* ============================================================
+   MOBILE TAB SWITCHING
+============================================================ */
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab)
+  );
+  document.querySelectorAll('.panel-section').forEach(p =>
+    p.classList.toggle('active-panel', p.dataset.panel === tab)
+  );
+  haptic('selectionChanged');
+  if (tab === 'preview') {
+    requestAnimationFrame(() => {
+      initPreviewSize();
+      render3DPreview();
+    });
+  }
+}
+function initMobileTabs() {
+  document.querySelectorAll('.panel-section').forEach(p => {
+    p.classList.toggle('active-panel', p.dataset.panel === activeTab);
+  });
+}
+
+/* ============================================================
+   CANVAS HINT
+============================================================ */
+function updateCanvasHint() {
+  const hint = document.getElementById('cv-hint');
+  if (!hint) return;
+  const hasContent = shapes.length > 0 || (cur && cur.pts.length > 0);
+  hint.classList.toggle('hidden', hasContent);
 }
 
 /* ============================================================
@@ -143,7 +192,7 @@ function arcGeom(x1,y1,x2,y2,bulge){
   const cy=((x1*x1+y1*y1)*(x2-ax)+(ax*ax+ay*ay)*(x1-x2)+(x2*x2+y2*y2)*(ax-x1))/D;
   const r=Math.hypot(x1-cx,y1-cy);
   const sa=Math.atan2(y1-cy,x1-cx),ea=Math.atan2(y2-cy,x2-cx);
-  const ap=Math.atan2(ay-cy,ax-cx);
+  const ap=Math.atan2(ay-cy,ax-cy);
   const acw=!betweenCCW(ap,sa,ea);
   const span=acw?normA(sa-ea):normA(ea-sa);
   return {cx,cy,r,sa,ea,acw,span};
@@ -205,40 +254,56 @@ function findTopShapeAt(x,y){ for(let si=shapes.length-1;si>=0;si--) if(ptInShap
 ============================================================ */
 function initCanvas(){
   const cw=document.getElementById('cwrap');
-  cv.width=Math.max(1,Math.floor(cw.clientWidth));
-  cv.height=Math.max(1,Math.floor(cw.clientHeight));
-  const pw=document.querySelector('.preview-canvas-wrap');
-  if(pw){pv.width=Math.max(1,Math.floor(pw.clientWidth));pv.height=Math.max(1,Math.floor(pw.clientHeight));}
+  cv.width=Math.max(1,Math.floor(cw.clientWidth * (window.devicePixelRatio || 1)));
+  cv.height=Math.max(1,Math.floor(cw.clientHeight * (window.devicePixelRatio || 1)));
+  cv.style.width = cw.clientWidth + 'px';
+  cv.style.height = cw.clientHeight + 'px';
+  ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+  initPreviewSize();
   redrawAll();
 }
-function syncGeometryViews(){ renderCanvas();render3DPreview();updateArea(); }
+function initPreviewSize(){
+  const pw=document.querySelector('.preview-canvas-wrap');
+  if(pw){
+    const dpr = window.devicePixelRatio || 1;
+    pv.width=Math.max(1,Math.floor(pw.clientWidth * dpr));
+    pv.height=Math.max(1,Math.floor(pw.clientHeight * dpr));
+    pv.style.width = pw.clientWidth + 'px';
+    pv.style.height = pw.clientHeight + 'px';
+    pctx.scale(dpr, dpr);
+  }
+}
+function syncGeometryViews(){ renderCanvas();render3DPreview();updateArea();updateCanvasHint(); }
 function redrawAll(){ syncGeometryViews();refreshDimsPanelIfNeeded(); }
 
 function renderCanvas(){
-  ctx.clearRect(0,0,cv.width,cv.height);
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.width / dpr;
+  const h = cv.height / dpr;
+  ctx.clearRect(0,0,w,h);
   ctx.save();
   ctx.setTransform(view.scale,0,0,view.scale,view.tx,view.ty);
-  drawGrid();
+  drawGrid(w,h);
   shapes.forEach((sh,si)=>drawShape(sh,si,appMode==='edit'&&selShape===si));
   if(cur) drawCurrent();
   ctx.restore();
 }
 
-function drawGrid(){
+function drawGrid(cw,ch){
   const s=view.scale,lw=1/s;
   const gx0=Math.floor((-view.tx/s)/GRID)*GRID;
   const gy0=Math.floor((-view.ty/s)/GRID)*GRID;
-  const gx1=Math.ceil(((cv.width -view.tx)/s)/GRID)*GRID;
-  const gy1=Math.ceil(((cv.height-view.ty)/s)/GRID)*GRID;
+  const gx1=Math.ceil(((cw-view.tx)/s)/GRID)*GRID;
+  const gy1=Math.ceil(((ch-view.ty)/s)/GRID)*GRID;
   for(let x=gx0;x<=gx1;x+=GRID){
-    ctx.strokeStyle=(x/GRID)%5===0?'#24364d':'#162535';
+    ctx.strokeStyle=(x/GRID)%5===0?'rgba(91,156,245,.12)':'rgba(91,156,245,.04)';
     ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(x,gy0);ctx.lineTo(x,gy1);ctx.stroke();
   }
   for(let y=gy0;y<=gy1;y+=GRID){
-    ctx.strokeStyle=(y/GRID)%5===0?'#24364d':'#162535';
+    ctx.strokeStyle=(y/GRID)%5===0?'rgba(91,156,245,.12)':'rgba(91,156,245,.04)';
     ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(gx0,y);ctx.lineTo(gx1,y);ctx.stroke();
   }
-  ctx.fillStyle='#1e2d3d';ctx.font=`${8/s}px monospace`;
+  ctx.fillStyle='rgba(91,156,245,.18)';ctx.font=`${8/s}px "JetBrains Mono", monospace`;
   for(let x=Math.ceil(gx0/GRID/5)*GRID*5;x<=gx1;x+=GRID*5) ctx.fillText((x/GRID)+'m',x+2/s,gy0+10/s);
   for(let y=Math.ceil(gy0/GRID/5)*GRID*5;y<=gy1;y+=GRID*5) ctx.fillText((y/GRID)+'m',gx0+2/s,y-2/s);
 }
@@ -257,16 +322,16 @@ function buildPath(sh){
 function drawShape(sh,si,sel){
   const s=view.scale;
   buildPath(sh);
-  ctx.fillStyle=sel?'rgba(230,168,23,.07)':'rgba(88,166,255,.04)';ctx.fill();
-  ctx.strokeStyle=sel?'#e6a817':SHC[si%SHC.length];
-  ctx.lineWidth=(sel?2.5:2)/s;ctx.setLineDash([]);buildPath(sh);ctx.stroke();
+  ctx.fillStyle=sel?'rgba(212,175,55,.06)':'rgba(91,156,245,.03)';ctx.fill();
+  ctx.strokeStyle=sel?'#d4af37':SHC[si%SHC.length];
+  ctx.lineWidth=(sel?2.5:1.8)/s;ctx.setLineDash([]);buildPath(sh);ctx.stroke();
 
   sh.pts.forEach((p,i)=>{
     ctx.beginPath();ctx.arc(p.x,p.y,5/s,0,Math.PI*2);
-    ctx.fillStyle=sel?'#e6a817':SHC[si%SHC.length];ctx.fill();
-    ctx.strokeStyle='#0d1117';ctx.lineWidth=1.5/s;ctx.stroke();
-    ctx.fillStyle=sel?'#e6a817':SHC[si%SHC.length];
-    ctx.font=`bold ${10/s}px monospace`;
+    ctx.fillStyle=sel?'#d4af37':SHC[si%SHC.length];ctx.fill();
+    ctx.strokeStyle='#0a0e14';ctx.lineWidth=1.5/s;ctx.stroke();
+    ctx.fillStyle=sel?'#d4af37':SHC[si%SHC.length];
+    ctx.font=`600 ${10/s}px "JetBrains Mono", monospace`;
     ctx.fillText(ALP[i]+(si+1),p.x+7/s,p.y-7/s);
   });
 
@@ -276,11 +341,14 @@ function drawShape(sh,si,sel){
     const vl=(arcLen(p.x,p.y,sh.pts[j].x,sh.pts[j].y,b)/GRID).toFixed(2);
     const ml=sh.lens[i]!=null?sh.lens[i]:vl;
     const txt=ml+'m';
-    ctx.font=`${9/s}px monospace`;
+    ctx.font=`500 ${9/s}px "JetBrains Mono", monospace`;
     const tw=ctx.measureText(txt).width;
-    ctx.fillStyle=b?'rgba(80,40,100,.9)':'rgba(20,30,45,.9)';
-    ctx.beginPath();ctx.roundRect(hp.x-tw/2-4/s,hp.y-20/s,tw+8/s,15/s,3/s);ctx.fill();
-    ctx.fillStyle=b?'#bc8cff':'#8b949e';ctx.fillText(txt,hp.x-tw/2,hp.y-9/s);
+    ctx.fillStyle=b?'rgba(90,50,120,.88)':'rgba(12,18,26,.88)';
+    ctx.beginPath();ctx.roundRect(hp.x-tw/2-5/s,hp.y-21/s,tw+10/s,16/s,4/s);ctx.fill();
+    /* subtle border */
+    ctx.strokeStyle=b?'rgba(167,139,250,.25)':'rgba(91,156,245,.15)';
+    ctx.lineWidth=0.8/s;ctx.stroke();
+    ctx.fillStyle=b?'#a78bfa':'#8f9baa';ctx.fillText(txt,hp.x-tw/2,hp.y-10/s);
   });
 
   if(sel){
@@ -289,9 +357,9 @@ function drawShape(sh,si,sel){
       const hp=handlePos(p.x,p.y,sh.pts[j].x,sh.pts[j].y,b);
       const hov=hovArc&&hovArc.si===si&&hovArc.seg===i;
       ctx.beginPath();ctx.arc(hp.x,hp.y,(hov?HANDLE_R+2:HANDLE_R)/s,0,Math.PI*2);
-      ctx.fillStyle=hov?'#e6a817':(b?'rgba(188,140,255,.9)':'rgba(60,80,110,.85)');ctx.fill();
-      ctx.strokeStyle='#0d1117';ctx.lineWidth=2/s;ctx.stroke();
-      ctx.fillStyle='#fff';ctx.font=`bold ${9/s}px sans-serif`;
+      ctx.fillStyle=hov?'#d4af37':(b?'rgba(167,139,250,.85)':'rgba(50,65,90,.85)');ctx.fill();
+      ctx.strokeStyle='#0a0e14';ctx.lineWidth=2/s;ctx.stroke();
+      ctx.fillStyle='#fff';ctx.font=`bold ${9/s}px "DM Sans", sans-serif`;
       ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.fillText('\u2322',hp.x,hp.y+1/s);
       ctx.textAlign='left';ctx.textBaseline='alphabetic';
@@ -299,7 +367,7 @@ function drawShape(sh,si,sel){
     sh.pts.forEach((p,i)=>{
       if(hovPt&&hovPt.si===si&&hovPt.pi===i){
         ctx.beginPath();ctx.arc(p.x,p.y,12/s,0,Math.PI*2);
-        ctx.strokeStyle='rgba(230,168,23,.5)';ctx.lineWidth=2/s;ctx.stroke();
+        ctx.strokeStyle='rgba(212,175,55,.5)';ctx.lineWidth=2/s;ctx.stroke();
       }
     });
   }
@@ -308,22 +376,22 @@ function drawShape(sh,si,sel){
 function drawCurrent(){
   const pts=cur.pts;if(!pts.length) return;
   const s=view.scale;
-  ctx.strokeStyle='#3fb950';ctx.lineWidth=2/s;ctx.setLineDash([5/s,4/s]);
+  ctx.strokeStyle='#4cce7b';ctx.lineWidth=2/s;ctx.setLineDash([5/s,4/s]);
   ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
   pts.forEach((p,i)=>{if(i) ctx.lineTo(p.x,p.y);});
   ctx.lineTo(mouse.x,mouse.y);ctx.stroke();ctx.setLineDash([]);
   const cd=closeDistW();
   if(pts.length>2&&Math.hypot(pts[0].x-mouse.x,pts[0].y-mouse.y)<cd){
     ctx.beginPath();ctx.arc(pts[0].x,pts[0].y,cd,0,Math.PI*2);
-    ctx.strokeStyle='rgba(63,185,80,.4)';ctx.lineWidth=2/s;
+    ctx.strokeStyle='rgba(76,206,123,.4)';ctx.lineWidth=2/s;
     ctx.setLineDash([3/s,3/s]);ctx.stroke();ctx.setLineDash([]);
   }
   pts.forEach((p,i)=>{
     ctx.beginPath();ctx.arc(p.x,p.y,5/s,0,Math.PI*2);
-    ctx.fillStyle=i===0?'#3fb950':'#58a6ff';ctx.fill();
-    ctx.strokeStyle='#0d1117';ctx.lineWidth=1.5/s;ctx.stroke();
-    ctx.fillStyle=i===0?'#3fb950':'#58a6ff';
-    ctx.font=`bold ${10/s}px monospace`;ctx.fillText(ALP[i],p.x+7/s,p.y-7/s);
+    ctx.fillStyle=i===0?'#4cce7b':'#5b9cf5';ctx.fill();
+    ctx.strokeStyle='#0a0e14';ctx.lineWidth=1.5/s;ctx.stroke();
+    ctx.fillStyle=i===0?'#4cce7b':'#5b9cf5';
+    ctx.font=`600 ${10/s}px "JetBrains Mono", monospace`;ctx.fillText(ALP[i],p.x+7/s,p.y-7/s);
   });
 }
 
@@ -350,34 +418,33 @@ function drawPoly3(c,pts,fill,stroke,lw=1.2){
   if(stroke){c.strokeStyle=stroke;c.lineWidth=lw;c.stroke();}
 }
 function drawPreviewGrid(cam,spanX,spanY){
+  const dpr = window.devicePixelRatio || 1;
+  const pvW = pv.width / dpr;
   const step=Math.max(60,GRID*2),pad=Math.max(spanX,spanY)*0.8;
   for(let x=-spanX/2-pad;x<=spanX/2+pad;x+=step){
     const a=project3D(x,-spanY/2-pad,0,cam),b=project3D(x,spanY/2+pad,0,cam);
     pctx.beginPath();pctx.moveTo(a.x,a.y);pctx.lineTo(b.x,b.y);
-    pctx.strokeStyle='rgba(88,166,255,.07)';pctx.lineWidth=1;pctx.stroke();
+    pctx.strokeStyle='rgba(91,156,245,.06)';pctx.lineWidth=1;pctx.stroke();
   }
   for(let y=-spanY/2-pad;y<=spanY/2+pad;y+=step){
     const a=project3D(-spanX/2-pad,y,0,cam),b=project3D(spanX/2+pad,y,0,cam);
     pctx.beginPath();pctx.moveTo(a.x,a.y);pctx.lineTo(b.x,b.y);
-    pctx.strokeStyle='rgba(230,168,23,.05)';pctx.lineWidth=1;pctx.stroke();
+    pctx.strokeStyle='rgba(212,175,55,.04)';pctx.lineWidth=1;pctx.stroke();
   }
 }
 function makeFace(pts,fill,stroke,lw=1.2){ return {pts,fill,stroke,lw}; }
 function faceAvgDepth(pts,yaw,pitch){ return pts.reduce((s,p)=>s+orbitDepth(p.x,p.y,p.z,yaw,pitch),0)/pts.length; }
 function drawFace3D(face,cam){ drawPoly3(pctx,face.pts.map(p=>project3D(p.x,p.y,p.z,cam)),face.fill,face.stroke,face.lw); }
 
-/* ── Wall faces only (no top cap – handled by buildRoofFaces) ── */
 function buildHouseFaces(sh,contour,sceneCx,sceneCy,color,selected){
   const faces=[];
   const ring=contour.map(p=>({x:p.x-sceneCx,y:-(p.y-sceneCy)}));
   const rB=ring.map(p=>({...p,z:0}));
   const rT=ring.map(p=>({...p,z:WALL_H}));
-  const wF1=selected?'rgba(230,168,23,.30)':rgba(color,.24);
-  const wF2=selected?'rgba(230,168,23,.16)':rgba(color,.12);
-  const wS =selected?'rgba(230,168,23,.55)':rgba(color,.42);
-  /* bottom face */
-  faces.push(makeFace(rB.slice().reverse(),'rgba(255,255,255,.04)','rgba(255,255,255,.05)',1));
-  /* wall faces – NO flat top here; roof added separately */
+  const wF1=selected?'rgba(212,175,55,.28)':rgba(color,.22);
+  const wF2=selected?'rgba(212,175,55,.14)':rgba(color,.10);
+  const wS =selected?'rgba(212,175,55,.50)':rgba(color,.38);
+  faces.push(makeFace(rB.slice().reverse(),'rgba(255,255,255,.03)','rgba(255,255,255,.04)',1));
   for(let i=0;i<ring.length;i++){
     const j=(i+1)%ring.length;
     const nx=-(ring[j].y-ring[i].y),ny=ring[j].x-ring[i].x;
@@ -386,12 +453,7 @@ function buildHouseFaces(sh,contour,sceneCx,sceneCy,color,selected){
   return faces;
 }
 
-/* ============================================================
-   ROOF FACE BUILDER
-   Generates 3D faces for the selected roof type on top of walls.
-============================================================ */
 function buildRoofFaces(sh, contour, sceneCx, sceneCy, color, selected) {
-  /* Convert canvas contour → 3D ring (Y inverted, centred on scene) */
   const ring = contour.map(p => ({x: p.x - sceneCx, y: -(p.y - sceneCy)}));
   const n = ring.length;
   if (n < 3) return [];
@@ -399,12 +461,10 @@ function buildRoofFaces(sh, contour, sceneCx, sceneCy, color, selected) {
   const pitchH = roofConfig.pitch;
   const type   = roofConfig.type;
 
-  /* Face colours */
-  const rFill   = selected ? 'rgba(230,168,23,.44)' : rgba(color, .34);
-  const rFill2  = selected ? 'rgba(230,168,23,.26)' : rgba(color, .20);
-  const rStroke = selected ? 'rgba(230,168,23,.95)' : rgba(color, .82);
+  const rFill   = selected ? 'rgba(212,175,55,.40)' : rgba(color, .30);
+  const rFill2  = selected ? 'rgba(212,175,55,.22)' : rgba(color, .18);
+  const rStroke = selected ? 'rgba(212,175,55,.90)' : rgba(color, .75);
 
-  /* Bounding box of the ring in 3D XY */
   let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
   ring.forEach(p=>{
     if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x;
@@ -417,13 +477,11 @@ function buildRoofFaces(sh, contour, sceneCx, sceneCy, color, selected) {
   const base = ring.map(p => ({x:p.x, y:p.y, z:WALL_H}));
   const faces = [];
 
-  /* ── FLAT ── simple cap polygon */
   if (type === 'flat') {
     faces.push(makeFace(base.slice(), rFill2, rStroke, 1.2));
     return faces;
   }
 
-  /* ── PYRAMID ── every wall edge fans to central peak */
   if (type === 'pyramid') {
     const peak = {x:cx, y:cy, z:WALL_H + pitchH};
     for (let i=0;i<n;i++){
@@ -433,7 +491,6 @@ function buildRoofFaces(sh, contour, sceneCx, sceneCy, color, selected) {
     return faces;
   }
 
-  /* ── MANSARD ── two-band stepped roof + small top cap */
   if (type === 'mansard') {
     const k1=0.20, k2=0.42;
     const z1=WALL_H+pitchH*0.55, z2=WALL_H+pitchH*0.88, zT=WALL_H+pitchH;
@@ -445,36 +502,22 @@ function buildRoofFaces(sh, contour, sceneCx, sceneCy, color, selected) {
       faces.push(makeFace([base[i], base[j], r1[j], r1[i]], rFill,  rStroke, 1.4));
       faces.push(makeFace([r1[i],   r1[j],   r2[j], r2[i]], rFill2, rStroke, 1.2));
     }
-    /* top cap triangles */
     for(let i=0;i<n;i++){
       const j=(i+1)%n;
-      faces.push(makeFace([r2[i], r2[j], peak], rgba(color,.16), rStroke, 1.0));
+      faces.push(makeFace([r2[i], r2[j], peak], rgba(color,.14), rStroke, 1.0));
     }
     return faces;
   }
 
-  /* ── GABLE / HIP / SHED ──
-     Elevate each wall-top vertex according to the roof geometry,
-     then fan-triangulate the elevated polygon from its ridgeline centre.
-
-     Why fan triangulation works here:
-       • For convex polygons – mathematically exact.
-       • For concave polygons (L-shapes etc.) – visually correct because
-         depth-sorting still paints the right order, and each triangle
-         is a proper planar section of the roof surface.
-  */
   function elevZ(p) {
     if (type === 'shed') {
-      /* slope along the short axis */
       return WALL_H + pitchH * (isWide ? (p.y-minY)/spanY : (p.x-minX)/spanX);
     }
     if (type === 'gable') {
-      /* ridge runs along long axis; height falls off perpendicular to it */
       const d = isWide ? Math.abs(p.y-cy)/(spanY/2) : Math.abs(p.x-cx)/(spanX/2);
       return WALL_H + pitchH * Math.max(0, 1-d);
     }
     if (type === 'hip') {
-      /* height proportional to minimum distance to any edge (Chebyshev) */
       const dx=Math.abs(p.x-cx)/(spanX/2), dy=Math.abs(p.y-cy)/(spanY/2);
       return WALL_H + pitchH * Math.max(0, 1-Math.max(dx,dy));
     }
@@ -482,9 +525,6 @@ function buildRoofFaces(sh, contour, sceneCx, sceneCy, color, selected) {
   }
 
   const elevated = ring.map(p => ({x:p.x, y:p.y, z:elevZ(p)}));
-
-  /* Fan centre: the ridge centre at peak height (gable/hip),
-     or the geometric centre at mid-height (shed) */
   const peakZ = (type==='shed') ? WALL_H+pitchH*0.5 : WALL_H+pitchH;
   const fan   = {x:cx, y:cy, z:peakZ};
 
@@ -496,34 +536,38 @@ function buildRoofFaces(sh, contour, sceneCx, sceneCy, color, selected) {
 }
 
 function render3DPreview(){
-  pctx.clearRect(0,0,pv.width,pv.height);
-  const bg=pctx.createLinearGradient(0,0,0,pv.height);
-  bg.addColorStop(0,'rgba(88,166,255,.10)');bg.addColorStop(1,'rgba(13,17,23,0)');
-  pctx.fillStyle=bg;pctx.fillRect(0,0,pv.width,pv.height);
+  const dpr = window.devicePixelRatio || 1;
+  const pvW = pv.width / dpr;
+  const pvH = pv.height / dpr;
+  pctx.clearRect(0,0,pvW,pvH);
+  const bg=pctx.createLinearGradient(0,0,0,pvH);
+  bg.addColorStop(0,'rgba(86,212,200,.06)');bg.addColorStop(1,'rgba(10,14,20,0)');
+  pctx.fillStyle=bg;pctx.fillRect(0,0,pvW,pvH);
   const deg=Math.round((PS.yaw*180/Math.PI+360)%360);
   const angleEl=document.getElementById('pv-angle');
-  if(angleEl) angleEl.innerHTML='&#8634; '+deg+'&deg;';
+  if(angleEl) angleEl.textContent=deg+'°';
   const noteEl=document.getElementById('pv-note');
   if(!shapes.length){
-    if(noteEl) noteEl.textContent='Drag = aylantirish · pinch/wheel = zoom';
-    pctx.fillStyle='#8b949e';pctx.font='12px monospace';pctx.textAlign='center';
-    pctx.fillText("3D preview shu yerda ko'rinadi",pv.width/2,pv.height/2-8);
-    pctx.fillText("Shakl chizing yoki tezkor shakl qo'shing",pv.width/2,pv.height/2+14);
+    if(noteEl) noteEl.textContent='Shakl chizib 3D ko\'ring';
+    pctx.fillStyle='#5a6678';pctx.font='500 12px "DM Sans", sans-serif';pctx.textAlign='center';
+    pctx.fillText("3D preview shu yerda ko'rinadi",pvW/2,pvH/2-6);
+    pctx.font='11px "DM Sans", sans-serif';
+    pctx.fillStyle='#3d4a5c';
+    pctx.fillText("Shakl chizing",pvW/2,pvH/2+14);
     pctx.textAlign='left';return;
   }
   const contours=shapes.map(sh=>getShapePolyline(sh,18));
   const sceneBox=getBBox(contours.flat());
   const spanX=Math.max(sceneBox.w,1),spanY=Math.max(sceneBox.h,1);
 
-  const roofExtra = roofConfig.pitch * 1.2;   // extra vertical room for roof
+  const roofExtra = roofConfig.pitch * 1.2;
   const cam={
     yaw:PS.yaw,pitch:PS.pitch,
     distance:Math.max(spanX,spanY)*1.9+520,
-    scale:Math.min((pv.width*0.55)/spanX,(pv.height*0.46)/(spanY+roofExtra))*PS.zoom,
+    scale:Math.min((pvW*0.55)/spanX,(pvH*0.46)/(spanY+roofExtra))*PS.zoom,
     ox:0, oy:0
   };
 
-  /* Auto-centre model on canvas */
   const allScreen=[];
   contours.forEach(contour=>{
     contour.forEach(p=>{
@@ -533,18 +577,16 @@ function render3DPreview(){
     });
   });
   const sb=getBBox(allScreen);
-  const marginTop=16;
-  cam.ox=pv.width/2  - sb.cx;
-  cam.oy=(marginTop+(pv.height-marginTop)/2) - sb.cy;
+  const marginTop=14;
+  cam.ox=pvW/2  - sb.cx;
+  cam.oy=(marginTop+(pvH-marginTop)/2) - sb.cy;
 
   drawPreviewGrid(cam,spanX,spanY);
 
-  /* Shadow ellipse */
   const gc=project3D(0,0,0,cam);
-  pctx.beginPath();pctx.ellipse(gc.x,gc.y+6,pv.width*0.20,12,0,0,Math.PI*2);
-  pctx.fillStyle='rgba(0,0,0,.18)';pctx.fill();
+  pctx.beginPath();pctx.ellipse(gc.x,gc.y+6,pvW*0.18,10,0,0,Math.PI*2);
+  pctx.fillStyle='rgba(0,0,0,.16)';pctx.fill();
 
-  /* Build all faces: walls + roof */
   const faces=[];
   contours.forEach((contour,si)=>{
     faces.push(...buildHouseFaces(shapes[si],contour,sceneBox.cx,sceneBox.cy,SHC[si%SHC.length],selShape===si));
@@ -553,19 +595,17 @@ function render3DPreview(){
   faces.sort((a,b)=>faceAvgDepth(b.pts,cam.yaw,cam.pitch)-faceAvgDepth(a.pts,cam.yaw,cam.pitch));
   faces.forEach(f=>drawFace3D(f,cam));
 
-  /* Shape labels */
   contours.forEach((contour,si)=>{
     const bb=getBBox(contour);
     const lp=project3D(bb.cx-sceneBox.cx,-(bb.cy-sceneBox.cy),WALL_H+roofConfig.pitch*1.15,cam);
-    pctx.fillStyle=(selShape===si)?'#e6a817':SHC[si%SHC.length];
-    pctx.font='bold 11px monospace';pctx.fillText('#'+(si+1),lp.x-10,lp.y);
+    pctx.fillStyle=(selShape===si)?'#d4af37':SHC[si%SHC.length];
+    pctx.font='bold 11px "JetBrains Mono", monospace';pctx.fillText('#'+(si+1),lp.x-10,lp.y);
   });
 
-  /* Status note */
   const rName = ROOF_NAMES[roofConfig.type] || roofConfig.type;
   if(noteEl) noteEl.textContent = selShape!=null
-    ? `Tom: ${rName} · drag = orbit · tanlangan #${selShape+1}`
-    : `${shapes.length} ta shakl · Tom: ${rName} · drag = orbit`;
+    ? `${rName} · #${selShape+1} tanlangan`
+    : `${shapes.length} shakl · ${rName}`;
 }
 
 /* ============================================================
@@ -630,7 +670,7 @@ pv.addEventListener('pointercancel',pvRelease);
 pv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse') pvRelease(e);});
 
 /* ============================================================
-   2D CANVAS EVENTS  – zoom · pan · draw · edit
+   2D CANVAS EVENTS
 ============================================================ */
 cv.addEventListener('wheel',e=>{
   e.preventDefault();
@@ -675,7 +715,9 @@ cv.addEventListener('pointerdown',e=>{
     if(hit!=null){
       selShape=hit;dimsDirty=true;refreshDimsPanelIfNeeded();renderCanvas();
       drag={type:'shape',si:hit,sx:w.x,sy:w.y,orig:shapes[hit].pts.map(p=>({x:p.x,y:p.y}))};
-      cv.style.cursor='grabbing';render3DPreview();return;
+      cv.style.cursor='grabbing';render3DPreview();
+      haptic('impactLight');
+      return;
     }
     selShape=null;dimsDirty=true;redrawAll();return;
   }
@@ -686,6 +728,8 @@ cv.addEventListener('pointerdown',e=>{
     const wy=snap?Math.round(w.y/GRID)*GRID:w.y;
     if(cur.pts.length>2&&Math.hypot(cur.pts[0].x-wx,cur.pts[0].y-wy)<closeDistW()){closeShape();return;}
     cur.pts.push({x:wx,y:wy});cur.segs.push({type:'line',bulge:0});cur.lens.push(null);
+    haptic('impactLight');
+    updateCanvasHint();
     renderCanvas();
   }
 });
@@ -784,11 +828,23 @@ function setAppMode(m){
   document.getElementById('btn-draw').classList.toggle('active',m==='draw');
   document.getElementById('btn-edit').classList.toggle('active',m==='edit');
   const b=document.getElementById('mode-badge');
-  if(m==='draw'){b.textContent='CHIZISH REJIMI';b.className='badge badge-draw';cv.style.cursor='crosshair';}
-  else{b.textContent='TAHRIRLASH REJIMI';b.className='badge badge-edit';cv.style.cursor='default';}
+  if(m==='draw'){
+    b.innerHTML='<span class="mode-dot"></span>CHIZISH';
+    b.className='mode-pill draw-mode';
+    cv.style.cursor='crosshair';
+  } else {
+    b.innerHTML='<span class="mode-dot"></span>TAHRIR';
+    b.className='mode-pill edit-mode';
+    cv.style.cursor='default';
+  }
+  haptic('selectionChanged');
   dimsDirty=true;redrawAll();
 }
-function toggleSnap(){ snap=!snap;document.getElementById('btn-snap').classList.toggle('active',snap); }
+function toggleSnap(){
+  snap=!snap;
+  document.getElementById('btn-snap').classList.toggle('active',snap);
+  haptic('impactLight');
+}
 
 function undoAction(){
   if(appMode==='draw'&&cur){
@@ -798,14 +854,16 @@ function undoAction(){
     if(selShape!=null&&selShape>=shapes.length) selShape=shapes.length-1;
     if(shapes.length===0) selShape=null;
   }
+  haptic('impactMedium');
   dimsDirty=true;redrawAll();
 }
-function newShape(){ cur=null;selShape=null;setAppMode('draw'); }
-function resetAll(){ shapes=[];cur=null;selShape=null;setAppMode('draw');dimsDirty=true;redrawAll(); }
+function newShape(){ cur=null;selShape=null;setAppMode('draw');haptic('impactLight'); }
+function resetAll(){ shapes=[];cur=null;selShape=null;setAppMode('draw');dimsDirty=true;redrawAll();haptic('notificationWarning'); }
 
 function deleteShape(si){
   shapes.splice(si,1);
   if(selShape!=null){if(selShape>=shapes.length)selShape=shapes.length-1;if(selShape<0)selShape=null;}
+  haptic('impactMedium');
   dimsDirty=true;redrawAll();
 }
 function closeShape(){
@@ -816,6 +874,7 @@ function closeShape(){
     return parseFloat((arcLen(p.x,p.y,cur.pts[j].x,cur.pts[j].y,b)/GRID).toFixed(2));
   });
   shapes.push(cur);cur=null;selShape=shapes.length-1;setAppMode('edit');
+  haptic('notificationSuccess');
 }
 
 /* ============================================================
@@ -853,7 +912,7 @@ function refreshDimsPanelIfNeeded(){ if(!dimsDirty) return;dimsDirty=false;updat
 function updateDimsPanel(){
   const el=document.getElementById('dims');
   if(!shapes.length){
-    el.innerHTML=`<div class="empty-state">Shakl chizing yoki<br>tezkor shakl qo'shing<br><br><span style="color:var(--amber)">&#8593;</span> Yuqoridagi sariq inputlarga<br>o'lcham kiriting</div>`;
+    el.innerHTML=`<div class="empty-state"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" opacity=".3"><rect x="4" y="8" width="32" height="24" rx="3" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/><path d="M14 20H26M20 14V26" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".5"/></svg><p>Shakl chizing yoki<br>tezkor shakl qo'shing</p></div>`;
     return;
   }
   el.innerHTML=shapes.map((sh,si)=>{
@@ -862,14 +921,14 @@ function updateDimsPanel(){
       const vl=(arcLen(p.x,p.y,sh.pts[j].x,sh.pts[j].y,b)/GRID).toFixed(2);
       const ml=sh.lens[i]!=null?sh.lens[i]:vl;
       const tag=b?`<span class="seg-tag tag-arc">EGRI</span>`:`<span class="seg-tag tag-line">TO'G'RI</span>`;
-      return `<div class="seg-row">${tag}<span class="seg-lbl">${ALP[i]}${si+1}&ndash;${ALP[j]}${si+1}</span><input class="seg-in" type="number" value="${ml}" min="0.01" step="0.1" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()" oninput="setLen(${si},${i},this.value)"><span class="seg-unit">m</span></div>`;
+      return `<div class="seg-row">${tag}<span class="seg-lbl">${ALP[i]}${si+1}–${ALP[j]}${si+1}</span><input class="seg-in" type="number" value="${ml}" min="0.01" step="0.1" inputmode="decimal" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()" oninput="setLen(${si},${i},this.value)"><span class="seg-unit">m</span></div>`;
     }).join('');
     return `<div class="shape-card ${selShape===si?'selected':''}" onclick="selectSh(${si})">
-      <div class="shape-card-title"><span>&#9670; SHAKL #${si+1}${selShape===si?' &check;':''}</span><button class="del-btn" onclick="event.stopPropagation();deleteShape(${si})">&#10005; O'CHIR</button></div>
+      <div class="shape-card-title"><span>◆ SHAKL #${si+1}${selShape===si?' ✓':''}</span><button class="del-btn" onclick="event.stopPropagation();deleteShape(${si})">✕</button></div>
       ${rows}</div>`;
   }).join('');
 }
-function selectSh(si){ selShape=si;if(appMode!=='edit')setAppMode('edit');dimsDirty=true;redrawAll(); }
+function selectSh(si){ selShape=si;if(appMode!=='edit')setAppMode('edit');dimsDirty=true;haptic('selectionChanged');redrawAll(); }
 function setLen(si,i,v){ const n=parseFloat(v);if(!isNaN(n)&&n>0){shapes[si].lens[i]=n;renderCanvas();render3DPreview();updateArea();} }
 function setSlope(si,v){ shapes[si].slope=parseInt(v,10);const lbl=document.getElementById('sv'+si);if(lbl)lbl.textContent=v+'°';render3DPreview();updateArea(); }
 
@@ -896,5 +955,17 @@ function updateArea(){
 /* ============================================================
    INIT
 ============================================================ */
-window.addEventListener('load',  ()=>{ initCanvas();redrawAll(); });
-window.addEventListener('resize', ()=>{ initCanvas();redrawAll(); });
+window.addEventListener('load', ()=>{
+  initCanvas();
+  initMobileTabs();
+  updateCanvasHint();
+  /* Set initial mode pill */
+  const b = document.getElementById('mode-badge');
+  b.className = 'mode-pill draw-mode';
+  b.innerHTML = '<span class="mode-dot"></span>CHIZISH';
+  redrawAll();
+});
+window.addEventListener('resize', ()=>{
+  initCanvas();
+  redrawAll();
+});

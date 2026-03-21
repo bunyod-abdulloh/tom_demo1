@@ -2,179 +2,317 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+    <meta name="theme-color" content="#0a0e14"/>
     <title>RoofCAD Pro – Tom Hisoblash</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <!-- ═══ HEADER ═══ -->
-<div class="hdr">
-    <div>
-        <div class="logo">PRO<span>MET</span></div>
-        <div class="logo-sub">TOM HARAJATLARINI HISOBLASH (2D + 3D PREVIEW)</div>
+<header class="hdr" id="app-header">
+    <div class="hdr-left">
+        <div class="logo">
+            <svg class="logo-icon" viewBox="0 0 28 28" fill="none">
+                <path d="M14 2L26 10V22L14 26L2 22V10L14 2Z" stroke="currentColor" stroke-width="1.5"
+                      fill="rgba(212,175,55,.08)"/>
+                <path d="M14 2L26 10L14 14L2 10L14 2Z" fill="rgba(212,175,55,.25)" stroke="currentColor"
+                      stroke-width="1"/>
+                <path d="M14 14V26" stroke="currentColor" stroke-width="1" opacity=".4"/>
+            </svg>
+            <div>
+                <span class="logo-text">Roof<span>CAD</span></span>
+                <span class="logo-edition">PRO</span>
+            </div>
+        </div>
     </div>
-    <span class="badge badge-draw" id="mode-badge">CHIZISH REJIMI</span>
-</div>
+    <div class="hdr-right">
+        <span class="mode-pill" id="mode-badge">
+            <span class="mode-dot"></span>
+            CHIZISH
+        </span>
+    </div>
+</header>
 
 <!-- ═══ TOOLBAR ═══ -->
-<div class="toolbar">
-    <button class="btn active" id="btn-draw" onclick="setAppMode('draw')">&#9998; CHIZISH</button>
-    <button class="btn" id="btn-edit" onclick="setAppMode('edit')">&#8982; TAHRIRLASH</button>
-    <div class="sep"></div>
-    <button class="btn" onclick="undoAction()">&#8617; ORTGA</button>
-    <button class="btn" style="color:var(--green);border-color:rgba(63,185,80,.3)" onclick="newShape()">+ YANGI</button>
-    <button class="btn" style="color:var(--red);border-color:rgba(248,81,73,.3)" onclick="resetAll()">&#10005; TOZALA
+<nav class="toolbar" id="toolbar">
+    <div class="tb-group tb-modes">
+        <button class="tb-btn active" id="btn-draw" onclick="setAppMode('draw')">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M11.5 1.5L14.5 4.5L5 14H2V11L11.5 1.5Z" stroke="currentColor" stroke-width="1.3"
+                      stroke-linejoin="round"/>
+            </svg>
+            <span>Chizish</span>
+        </button>
+        <button class="tb-btn" id="btn-edit" onclick="setAppMode('edit')">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M2 8H6L7 5L9 11L10 8H14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </svg>
+            <span>Tahrir</span>
+        </button>
+    </div>
+    <div class="tb-sep"></div>
+    <div class="tb-group">
+        <button class="tb-btn tb-icon" onclick="undoAction()" title="Ortga">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6H11C12.6569 6 14 7.34315 14 9C14 10.6569 12.6569 12 11 12H8" stroke="currentColor"
+                      stroke-width="1.3" stroke-linecap="round"/>
+                <path d="M6 4L4 6L6 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button class="tb-btn tb-add" onclick="newShape()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 2V12M2 7H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span>Yangi</span>
+        </button>
+        <button class="tb-btn tb-danger" onclick="resetAll()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M3 3L11 11M11 3L3 11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </div>
+    <div class="tb-sep"></div>
+    <button class="tb-btn tb-snap active" id="btn-snap" onclick="toggleSnap()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+            <rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+            <rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+            <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+        <span>Snap</span>
     </button>
-    <div class="sep"></div>
-    <button class="btn active" id="btn-snap" onclick="toggleSnap()">&#8862; SNAP</button>
-    <div class="sep"></div>
-    <span style="font-size:9px;color:var(--muted)">
-    Nuqta=surish &bull; &#8960;=egri &bull; ichida ushla=ko'chir &bull; 2 barmoq=zoom/pan
-  </span>
-</div>
+</nav>
 
 <!-- ═══ MAIN LAYOUT ═══ -->
-<div class="layout">
+<div class="layout" id="main-layout">
 
     <!-- ─── 2D Canvas column ─── -->
     <div class="canvas-col">
         <div class="canvas-wrap" id="cwrap">
             <canvas id="cv"></canvas>
             <div class="cv-tools">
-                <button class="cv-btn" onclick="zoomAt(1.3, cv.width/2, cv.height/2)">+</button>
-                <button class="cv-btn" onclick="zoomAt(1/1.3, cv.width/2, cv.height/2)">−</button>
-                <button class="cv-btn cv-btn-reset" onclick="resetCanvasView()">RESET</button>
+                <button class="cv-btn" onclick="zoomAt(1.3, cv.width/2, cv.height/2)">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M9 4V14M4 9H14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button class="cv-btn" onclick="zoomAt(1/1.3, cv.width/2, cv.height/2)">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M4 9H14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button class="cv-btn cv-btn-reset" onclick="resetCanvasView()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14"
+                              stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                        <path d="M2 4V8H6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                </button>
             </div>
-        </div>
-        <div class="hint" id="hint">
-            &#9312; Nuqtalar qo'ying &rarr;
-            &#9313; Birinchi nuqtaga yaqin bosib yoping &rarr;
-            &#9314; Mobil: 1 barmoq = chizish, 2 barmoq = zoom/pan &rarr;
-            &#9315; Scroll yoki +/− = zoom
+
+            <!-- Canvas hint overlay -->
+            <div class="cv-hint" id="cv-hint">
+                <div class="cv-hint-inner">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" opacity=".5">
+                        <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.2" stroke-dasharray="3 3"/>
+                        <path d="M16 10V22M10 16H22" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"
+                              opacity=".6"/>
+                    </svg>
+                    <p>Nuqtalar qo'yib shakl chizing</p>
+                    <span>1 barmoq = chizish · 2 barmoq = zoom/pan</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- ─── Right panel ─── -->
-    <div class="right-col">
+    <div class="right-col" id="right-panel">
+
+        <!-- Tab bar for mobile -->
+        <div class="tab-bar" id="tab-bar">
+            <button class="tab active" data-tab="preview" onclick="switchTab('preview')">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M2 12L8 4L14 12" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                    <path d="M5 8L8 4L11 8" stroke="currentColor" stroke-width="1" opacity=".4"/>
+                </svg>
+                3D
+            </button>
+            <button class="tab" data-tab="roof" onclick="switchTab('roof')">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M2 10L8 4L14 10" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                    <rect x="2" y="10" width="12" height="4" stroke="currentColor" stroke-width="1.2" rx="0.5"/>
+                </svg>
+                Tom turi
+            </button>
+            <button class="tab" data-tab="dims" onclick="switchTab('dims')">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M4 2V14M12 2V14M4 8H12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                    <path d="M2 4H6M10 4H14M2 12H6M10 12H14" stroke="currentColor" stroke-width="1"
+                          stroke-linecap="round" opacity=".5"/>
+                </svg>
+                O'lcham
+            </button>
+        </div>
 
         <!-- 3D Preview -->
-        <div class="panel-title">// 3D PREVIEW</div>
-        <div class="preview-wrap">
-            <div class="preview-card">
-                <div class="preview-head">
-                    <div>
-                        <div class="preview-title">3D KO'RINISH</div>
-                    </div>
-                    <div class="preview-chip" id="pv-angle">&#8634; 315&deg;</div>
+        <div class="panel-section" data-panel="preview" id="panel-preview">
+            <div class="section-label">
+                <span class="section-label-text">3D Ko'rinish</span>
+                <span class="section-label-chip" id="pv-angle">315°</span>
+            </div>
+            <div class="preview-canvas-wrap">
+                <canvas id="pv"></canvas>
+                <div class="pv-tools">
+                    <button class="pv-btn" onclick="zoomPreview(1.15)">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="pv-btn" onclick="zoomPreview(1/1.15)">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M3 8H13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="pv-btn pv-btn-reset" onclick="resetPreviewCamera()">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M1.5 7C1.5 3.96243 3.96243 1.5 7 1.5C10.0376 1.5 12.5 3.96243 12.5 7C12.5 10.0376 10.0376 12.5 7 12.5"
+                                  stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                            <path d="M1.5 3.5V7H5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </button>
                 </div>
-                <div class="preview-canvas-wrap">
-                    <canvas id="pv"></canvas>
-                    <div class="pv-tools">
-                        <button class="pv-btn" onclick="zoomPreview(1.15)">+</button>
-                        <button class="pv-btn" onclick="zoomPreview(1/1.15)">−</button>
-                        <button class="pv-btn pv-btn-reset" onclick="resetPreviewCamera()">RESET</button>
-                    </div>
-                </div>
-                <div class="preview-meta">
-                    <span id="pv-note">3D preview endi uy shakli bilan chiziladi</span>
-                    <span>Drag = orbit</span>
+                <div class="pv-status">
+                    <span id="pv-note">Shakl chizib 3D ko'ring</span>
+                    <span class="pv-drag-hint">Drag = orbit</span>
                 </div>
             </div>
         </div>
 
         <!-- ─── TOM TURI PANEL ─── -->
-        <div class="panel-title">// TOM TURI</div>
-        <div class="roof-sel">
-            <div class="roof-grid">
-
-                <button class="roof-btn" data-roof="flat" onclick="setRoofType('flat')" title="Tekis tom">
-                    <svg viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="4" y="16" width="32" height="9" fill="rgba(255,255,255,.06)" stroke="currentColor"
-                              stroke-width="1.5"/>
-                        <line x1="4" y1="16" x2="36" y2="16" stroke="currentColor" stroke-width="2.5"/>
-                    </svg>
-                    <span>Tekis</span>
-                </button>
-
-                <button class="roof-btn" data-roof="shed" onclick="setRoofType('shed')" title="Bir tomonlama">
-                    <svg viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="4" y="16" width="32" height="9" fill="rgba(255,255,255,.06)" stroke="currentColor"
-                              stroke-width="1.5"/>
-                        <polygon points="4,8 36,16 36,16 4,16" fill="rgba(255,255,255,.08)" stroke="currentColor"
-                                 stroke-width="2"/>
-                    </svg>
-                    <span>Bir tomonli</span>
-                </button>
-
-                <button class="roof-btn active" data-roof="gable" onclick="setRoofType('gable')"
-                        title="Tizma (ikki tomonlama)">
-                    <svg viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="4" y="16" width="32" height="9" fill="rgba(255,255,255,.06)" stroke="currentColor"
-                              stroke-width="1.5"/>
-                        <polygon points="4,16 20,5 36,16" fill="rgba(255,255,255,.08)" stroke="currentColor"
-                                 stroke-width="2"/>
-                    </svg>
-                    <span>Tizma</span>
-                </button>
-
-                <button class="roof-btn" data-roof="hip" onclick="setRoofType('hip')" title="Hip (to'rt tomonlama)">
-                    <svg viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="4" y="16" width="32" height="9" fill="rgba(255,255,255,.06)" stroke="currentColor"
-                              stroke-width="1.5"/>
-                        <polygon points="4,16 11,8 29,8 36,16" fill="rgba(255,255,255,.08)" stroke="currentColor"
-                                 stroke-width="2"/>
-                        <line x1="11" y1="8" x2="29" y2="8" stroke="currentColor" stroke-width="1.5"/>
-                    </svg>
-                    <span>Hip</span>
-                </button>
-
-                <button class="roof-btn" data-roof="pyramid" onclick="setRoofType('pyramid')" title="Piramida">
-                    <svg viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="4" y="16" width="32" height="9" fill="rgba(255,255,255,.06)" stroke="currentColor"
-                              stroke-width="1.5"/>
-                        <polygon points="4,16 20,3 36,16" fill="rgba(255,255,255,.08)" stroke="currentColor"
-                                 stroke-width="2"/>
-                    </svg>
-                    <span>Piramida</span>
-                </button>
-
-                <button class="roof-btn" data-roof="mansard" onclick="setRoofType('mansard')" title="Mansard">
-                    <svg viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="4" y="16" width="32" height="9" fill="rgba(255,255,255,.06)" stroke="currentColor"
-                              stroke-width="1.5"/>
-                        <polygon points="4,16 8,10 13,7 27,7 32,10 36,16" fill="rgba(255,255,255,.08)"
-                                 stroke="currentColor" stroke-width="2"/>
-                        <line x1="13" y1="7" x2="27" y2="7" stroke="currentColor" stroke-width="1.5"/>
-                    </svg>
-                    <span>Mansard</span>
-                </button>
-
+        <div class="panel-section" data-panel="roof" id="panel-roof">
+            <div class="section-label">
+                <span class="section-label-text">Tom turi</span>
             </div>
+            <div class="roof-content">
+                <div class="roof-grid">
+                    <button class="roof-btn" data-roof="flat" onclick="setRoofType('flat')" title="Tekis tom">
+                        <div class="roof-btn-icon">
+                            <svg viewBox="0 0 48 32" fill="none">
+                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
+                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                <line x1="6" y1="18" x2="42" y2="18" stroke="currentColor" stroke-width="2.5"/>
+                            </svg>
+                        </div>
+                        <span>Tekis</span>
+                    </button>
+                    <button class="roof-btn" data-roof="shed" onclick="setRoofType('shed')" title="Bir tomonlama">
+                        <div class="roof-btn-icon">
+                            <svg viewBox="0 0 48 32" fill="none">
+                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
+                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                <polygon points="6,9 42,18 42,18 6,18" fill="rgba(212,175,55,.1)" stroke="currentColor"
+                                         stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <span>Bir tomonli</span>
+                    </button>
+                    <button class="roof-btn active" data-roof="gable" onclick="setRoofType('gable')" title="Tizma">
+                        <div class="roof-btn-icon">
+                            <svg viewBox="0 0 48 32" fill="none">
+                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
+                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                <polygon points="6,18 24,5 42,18" fill="rgba(212,175,55,.1)" stroke="currentColor"
+                                         stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <span>Tizma</span>
+                    </button>
+                    <button class="roof-btn" data-roof="hip" onclick="setRoofType('hip')" title="Hip">
+                        <div class="roof-btn-icon">
+                            <svg viewBox="0 0 48 32" fill="none">
+                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
+                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                <polygon points="6,18 14,8 34,8 42,18" fill="rgba(212,175,55,.1)" stroke="currentColor"
+                                         stroke-width="2"/>
+                                <line x1="14" y1="8" x2="34" y2="8" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+                        <span>Hip</span>
+                    </button>
+                    <button class="roof-btn" data-roof="pyramid" onclick="setRoofType('pyramid')" title="Piramida">
+                        <div class="roof-btn-icon">
+                            <svg viewBox="0 0 48 32" fill="none">
+                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
+                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                <polygon points="6,18 24,3 42,18" fill="rgba(212,175,55,.1)" stroke="currentColor"
+                                         stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <span>Piramida</span>
+                    </button>
+                    <button class="roof-btn" data-roof="mansard" onclick="setRoofType('mansard')" title="Mansard">
+                        <div class="roof-btn-icon">
+                            <svg viewBox="0 0 48 32" fill="none">
+                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
+                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                <polygon points="6,18 10,11 16,7 32,7 38,11 42,18" fill="rgba(212,175,55,.1)"
+                                         stroke="currentColor" stroke-width="2"/>
+                                <line x1="16" y1="7" x2="32" y2="7" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+                        <span>Mansard</span>
+                    </button>
+                </div>
 
-            <!-- Pitch slider -->
-            <div class="pitch-row">
-                <span class="pitch-lbl">Tom balandligi</span>
-                <input type="range" id="pitch-sl" min="0.5" max="6" step="0.1" value="2.5"
-                       oninput="setRoofPitch(this.value)">
-                <span id="pitch-val" class="pitch-val">2.5m</span>
+                <!-- Pitch slider -->
+                <div class="pitch-row">
+                    <label class="pitch-lbl">Balandlik</label>
+                    <div class="pitch-slider-wrap">
+                        <input type="range" class="pitch-slider" id="pitch-sl" min="0.5" max="6" step="0.1" value="2.5"
+                               oninput="setRoofPitch(this.value)">
+                    </div>
+                    <output id="pitch-val" class="pitch-val">2.5m</output>
+                </div>
             </div>
         </div>
 
         <!-- Dims panel -->
-        <div class="panel-title">// O'LCHAMLAR</div>
-        <div class="dims-scroll" id="dims">
-            <div class="empty-state">
-                Shakl chizing yoki<br>tezkor shakl qo'shing<br><br>
-                <span style="color:var(--amber)">&#8593;</span> Yuqoridagi sariq inputlarga<br>o'lcham kiriting
+        <div class="panel-section panel-dims" data-panel="dims" id="panel-dims">
+            <div class="section-label">
+                <span class="section-label-text">O'lchamlar</span>
+            </div>
+            <div class="dims-scroll" id="dims">
+                <div class="empty-state">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" opacity=".3">
+                        <rect x="4" y="8" width="32" height="24" rx="3" stroke="currentColor" stroke-width="1.5"
+                              stroke-dasharray="4 3"/>
+                        <path d="M14 20H26M20 14V26" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                              opacity=".5"/>
+                    </svg>
+                    <p>Shakl chizing yoki<br>tezkor shakl qo'shing</p>
+                </div>
             </div>
         </div>
 
         <!-- Result -->
-        <div class="result">
-            <div class="res-label">Jami</div>
-            <div class="res-val" id="area-val">0.00 m&#178;</div>
-            <div class="res-sub">Har bir shakl mustaqil hisoblanadi</div>
+        <div class="result-bar" id="result-bar">
+            <div class="result-inner">
+                <div class="result-info">
+                    <span class="result-label">Umumiy maydon</span>
+                    <span class="result-sub">Har bir shakl mustaqil</span>
+                </div>
+                <div class="result-value" id="area-val">0.00 m²</div>
+            </div>
         </div>
 
     </div><!-- .right-col -->
