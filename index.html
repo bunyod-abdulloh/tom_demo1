@@ -3,321 +3,781 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-    <meta name="theme-color" content="#0a0e14"/>
-    <title>RoofCAD Pro – Tom Hisoblash</title>
+          content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+    <meta name="theme-color" content="#080c14"/>
+    <title>PROMET — Tom Markazi</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
           rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root{
+          --g:#22c55e;--g2:#16a34a;--g3:#4ade80;--g4:#86efac;
+          --gbg:rgba(34,197,94,.08);--gbg2:rgba(34,197,94,.14);--gbrd:rgba(34,197,94,.25);
+          --gglow:0 0 20px rgba(34,197,94,.15);
+          --bg:#080c14;--bg2:#0c1220;--bg3:#111827;--bg4:#1a2332;
+          --card:#0f1729;--card2:#162033;--card3:#1c2940;
+          --brd:rgba(255,255,255,.06);--brd2:rgba(255,255,255,.10);--brd3:rgba(255,255,255,.16);
+          --t1:#f1f5f9;--t2:#94a3b8;--t3:#64748b;--t4:#475569;
+          --red:#ef4444;--blue:#3b82f6;--purple:#a78bfa;--amber:#f59e0b;--cyan:#22d3ee;
+          --r:10px;--r2:14px;--r3:20px;--r4:28px;
+          --e:cubic-bezier(.16,1,.3,1);
+          --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+          --f:'Sora',system-ui,sans-serif;--fm:'JetBrains Mono',monospace;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html,body{height:100%;overflow:hidden}
+        body{
+          background:var(--bg);color:var(--t1);font-family:var(--f);
+          display:flex;flex-direction:column;height:100dvh;
+          -webkit-font-smoothing:antialiased;
+        }
+        body::before{
+          content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+          background:radial-gradient(ellipse 70% 50% at 20% 0%,rgba(34,197,94,.04),transparent),
+          radial-gradient(ellipse 50% 40% at 85% 100%,rgba(59,130,246,.03),transparent);
+        }
+
+        /* ═══ HEADER ═══ */
+        .hdr{flex-shrink:0;z-index:100;padding-top:var(--sat);background:rgba(8,12,20,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--brd)}
+        .hdr::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(34,197,94,.3),transparent)}
+        .hdr-in{display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
+        .logo{display:flex;align-items:center;gap:3px;text-decoration:none}
+        .logo img{height:38px;border-radius:6px}
+        .hdr-b{
+          padding:8px 18px;border-radius:99px;font-size:11.5px;font-weight:700;
+          font-family:var(--f);color:#fff;background:var(--g2);border:none;cursor:pointer;
+          text-decoration:none;display:flex;align-items:center;gap:6px;
+          box-shadow:0 0 16px rgba(34,197,94,.2);transition:all .2s var(--e);
+        }
+        .hdr-b:hover{background:var(--g);box-shadow:0 0 24px rgba(34,197,94,.3);transform:translateY(-1px)}
+        .hdr-b:active{transform:scale(.96)}
+        .hdr-b svg{flex-shrink:0}
+        .nav{display:flex;gap:0;padding:0 12px;overflow-x:auto;scrollbar-width:none}
+        .nav::-webkit-scrollbar{display:none}
+        .nt{
+          padding:11px 18px 13px;font-size:12.5px;font-weight:600;color:var(--t4);
+          background:none;border:none;cursor:pointer;font-family:var(--f);
+          white-space:nowrap;position:relative;transition:color .2s;
+        }
+        .nt:hover{color:var(--t2)}
+        .nt.on{color:var(--g3)}
+        .nt::after{content:'';position:absolute;bottom:0;left:16px;right:16px;height:2px;border-radius:2px;background:var(--g);transform:scaleX(0);transition:transform .25s var(--e)}
+        .nt.on::after{transform:scaleX(1)}
+
+        /* ═══ PAGES ═══ */
+        .pg{display:none;flex:1;min-height:0;position:relative;z-index:1}
+        .pg.on{display:flex;flex-direction:column}
+        .pg-s{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+
+        /* ═══ CALCULATOR ═══ */
+        .calc{display:grid;grid-template-columns:1fr 400px;flex:1;min-height:0;overflow:hidden}
+        .cv-col{display:flex;flex-direction:column;border-right:1px solid var(--brd);overflow:hidden}
+        .cv-tb{display:flex;align-items:center;gap:3px;padding:5px 10px;background:var(--bg2);border-bottom:1px solid var(--brd);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+        .cv-tb::-webkit-scrollbar{display:none}
+        .tg{display:flex;align-items:center;gap:2px}
+        .tgm{background:var(--bg3);border-radius:var(--r);padding:2px}
+        .sp{width:1px;height:18px;background:var(--brd2);margin:0 5px;flex-shrink:0}
+        .tb{
+          display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;
+          font-size:11px;font-family:var(--f);font-weight:600;border:none;cursor:pointer;
+          background:transparent;color:var(--t3);transition:all .15s var(--e);
+          white-space:nowrap;min-height:32px;
+        }
+        .tb svg{flex-shrink:0;opacity:.5}
+        .tb:active{transform:scale(.95)}
+        .tb:hover{color:var(--t1);background:rgba(255,255,255,.04)}
+        .tb:hover svg{opacity:.8}
+        .tb.on{background:var(--gbg2);color:var(--g3);border:1px solid var(--gbrd)}
+        .tb.on svg{opacity:1}
+        .tb.ti{padding:6px 7px}
+        .tb.ta{color:var(--g)}
+        .tb.tx{color:var(--t4)}.tb.tx:hover{color:var(--red);background:rgba(239,68,68,.06)}
+        .tb.tsn.on{background:rgba(34,211,238,.08);color:var(--cyan);border-color:rgba(34,211,238,.22)}
+
+        .cvw{flex:1;position:relative;overflow:hidden;background:var(--bg);min-height:260px;touch-action:none}
+        #cv{display:block;width:100%;height:100%;user-select:none;cursor:crosshair}
+        .cv-z{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:5px;z-index:3}
+        .zb{width:36px;height:36px;border-radius:var(--r);display:grid;place-items:center;background:rgba(15,23,41,.85);backdrop-filter:blur(8px);color:var(--g);border:1px solid var(--gbrd);cursor:pointer;transition:all .15s;box-shadow:var(--gglow)}
+        .zb:active{transform:scale(.88);background:var(--gbg2)}
+
+        .cv-hint{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;transition:opacity .4s}
+        .cv-hint.hid{opacity:0}
+        .cv-hint-in{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+        .cv-hint-in .hi{
+          width:56px;height:56px;border-radius:50%;background:var(--gbg);
+          border:1.5px dashed var(--gbrd);display:grid;place-items:center;color:var(--g);
+          animation:gp 3s ease-in-out infinite;
+        }
+        @keyframes gp{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.1)}50%{box-shadow:0 0 0 16px rgba(34,197,94,0)}}
+        .cv-hint-in p{font-size:14px;font-weight:600;color:var(--t2)}
+        .cv-hint-in span{font-size:10px;color:var(--t4)}
+
+        /* ═══ RIGHT PANEL ═══ */
+        .rp{display:flex;flex-direction:column;background:var(--card);overflow:hidden;min-height:0}
+        .rp-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--brd);padding:3px;gap:2px;flex-shrink:0}
+        .rpt{
+          flex:1;display:flex;align-items:center;justify-content:center;gap:4px;
+          padding:9px 4px;border-radius:8px;font-size:10.5px;font-weight:700;
+          font-family:var(--f);color:var(--t4);background:transparent;
+          border:none;cursor:pointer;transition:all .2s var(--e);letter-spacing:.2px;
+        }
+        .rpt svg{flex-shrink:0;opacity:.35;transition:opacity .15s}
+        .rpt:hover{color:var(--t2)}.rpt:hover svg{opacity:.5}
+        .rpt.on{background:var(--card);color:var(--g3);box-shadow:0 1px 8px rgba(0,0,0,.3);border:1px solid var(--brd2)}
+        .rpt.on svg{opacity:1}
+
+        .rpn{display:none;flex-direction:column;min-height:0}
+        .rpn.vis{display:flex;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+        .rpn-h{padding:10px 16px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--brd);flex-shrink:0;position:sticky;top:0;z-index:2;backdrop-filter:blur(8px)}
+        .rpn-h h3{font-size:10.5px;font-weight:700;color:var(--t3);letter-spacing:.8px;text-transform:uppercase}
+
+        /* ── ROOF ── */
+        .rw{padding:14px 16px;border-bottom:1px solid var(--brd)}
+        .rg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+        .rf{
+          display:flex;flex-direction:column;align-items:center;gap:5px;
+          padding:12px 4px 8px;border-radius:var(--r);background:var(--bg3);
+          border:1.5px solid transparent;cursor:pointer;color:var(--t4);
+          font-family:var(--f);transition:all .2s;position:relative;overflow:hidden;
+        }
+        .rf-i{width:100%;display:flex;justify-content:center}
+        .rf-i svg{width:100%;max-width:52px;height:24px}
+        .rf span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+        .rf:active{transform:scale(.97)}
+        .rf:hover{border-color:var(--gbrd);color:var(--g3)}
+        .rf.on{border-color:var(--g);color:var(--g3);background:var(--gbg);box-shadow:var(--gglow)}
+        .rf.on::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:22px;height:2px;background:var(--g);border-radius:0 0 2px 2px}
+
+        .pr{display:flex;align-items:center;gap:10px}
+        .prl{font-size:9.5px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;flex-shrink:0}
+        .prt{flex:1;position:relative;height:4px;border-radius:2px;background:var(--bg4)}
+        .prf{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--g2),var(--g));border-radius:2px;transition:width .1s;box-shadow:0 0 8px rgba(34,197,94,.3)}
+        .prs{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);width:100%;height:24px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;z-index:2}
+        .prs::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--g);border:2px solid var(--bg);box-shadow:0 0 12px rgba(34,197,94,.4);cursor:grab}
+        .prs::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--g);border:2px solid var(--bg)}
+        .prv{font-family:var(--fm);font-size:12px;font-weight:700;color:var(--g3);min-width:38px;text-align:right}
+
+        /* ── PROFNASTIL ── */
+        .pw{padding:14px 16px}
+        .pg2{margin-bottom:16px}.pg2:last-child{margin-bottom:0}
+        .pgl{font-size:9.5px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+        .pgl::before{content:'';width:3px;height:11px;border-radius:1px;background:var(--g)}
+        .pps{display:flex;flex-wrap:wrap;gap:5px}
+        .pp{
+          padding:7px 13px;border-radius:99px;border:1px solid var(--brd2);
+          background:var(--bg3);font-size:11.5px;font-weight:600;color:var(--t2);
+          cursor:pointer;transition:all .15s;font-family:var(--f);
+        }
+        .pp:hover{border-color:var(--gbrd);color:var(--g3)}
+        .pp.on{border-color:var(--g);color:#fff;background:var(--g2);box-shadow:0 0 12px rgba(34,197,94,.2)}
+
+        /* ── COLOR ── */
+        .cg{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+        .cl{aspect-ratio:1;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:all .15s;position:relative;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+        .cl:hover{transform:scale(1.12);z-index:2}
+        .cl.on{border-color:var(--g);transform:scale(1.12);box-shadow:0 0 16px rgba(34,197,94,.2)}
+        .cl.on::after{content:'✓';position:absolute;inset:0;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.4)}
+        .ci{margin-top:10px;padding:10px 14px;border-radius:var(--r);background:var(--bg3);border:1px solid var(--brd);display:flex;align-items:center;gap:12px}
+        .ci-p{width:30px;height:30px;border-radius:6px;border:1px solid var(--brd2)}
+        .ci-d{font-family:var(--fm);font-size:11.5px;color:var(--t2)}
+        .ci-d strong{color:var(--t1);font-weight:700}
+
+        /* ── DIMS ── */
+        .ds{flex:1;padding:10px 14px}
+        .sc{
+          background:var(--bg3);border:1px solid var(--brd2);border-radius:var(--r);
+          padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .2s;
+          animation:cI .3s var(--e) both;
+        }
+        @keyframes cI{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+        .sc.sel{border-color:var(--gbrd);box-shadow:0 0 0 2px rgba(34,197,94,.06),var(--gglow)}
+        .sct{font-size:10.5px;font-weight:700;color:var(--g);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+        .scd{display:grid;place-items:center;width:26px;height:26px;font-size:10px;background:rgba(239,68,68,.06);color:var(--red);border:1px solid rgba(239,68,68,.12);border-radius:6px;cursor:pointer}
+        .scd:active{background:var(--red);color:#fff}
+        .sr{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+        .st{font-size:7.5px;font-weight:800;padding:2px 6px;border-radius:4px;min-width:42px;text-align:center;font-family:var(--fm);letter-spacing:.3px}
+        .st.arc{background:rgba(167,139,250,.1);color:var(--purple)}
+        .st.lin{background:rgba(59,130,246,.08);color:var(--blue)}
+        .sl{font-family:var(--fm);font-size:10px;color:var(--t4);width:48px;flex-shrink:0}
+        .si{
+          flex:1;background:var(--bg2);border:1px solid var(--brd2);border-radius:8px;
+          padding:7px 9px;font-size:13px;font-family:var(--fm);font-weight:600;
+          color:var(--t1);outline:none;min-width:0;min-height:36px;transition:all .15s;
+        }
+        .si:focus{border-color:var(--g);box-shadow:0 0 0 2px rgba(34,197,94,.08)}
+        .su{font-size:10px;color:var(--t4);font-weight:600}
+        .empty{text-align:center;padding:44px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--t4)}
+        .empty p{font-size:12px;line-height:1.6}
+
+        /* ═══ RESULT ═══ */
+        .res{flex-shrink:0;padding:0 16px calc(8px + var(--sab));background:var(--card);border-top:1px solid var(--brd2);position:relative}
+        .res::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1px;background:linear-gradient(90deg,transparent,rgba(34,197,94,.2),transparent)}
+        .res-in{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}
+        .res-l{display:flex;flex-direction:column;gap:2px}
+        .res-lb{font-size:9px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:1px}
+        .res-sub{font-size:9.5px;color:var(--t4)}
+        .res-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+        .res-a{font-family:var(--fm);font-size:22px;font-weight:700;color:var(--g3);letter-spacing:-.5px;line-height:1;text-shadow:0 0 20px rgba(34,197,94,.2)}
+        .res-c{display:inline-flex;padding:4px 12px;border-radius:99px;background:var(--g2);font-family:var(--fm);font-size:11.5px;font-weight:700;color:#fff;box-shadow:0 0 12px rgba(34,197,94,.2)}
+
+        /* ═══ ABOUT ═══ */
+        .ab-in{max-width:780px;margin:0 auto;padding:24px 20px 80px;width:100%}
+        .ab-hero{border-radius:var(--r3);padding:40px 32px;margin-bottom:28px;overflow:hidden;position:relative;background:linear-gradient(140deg,#0a1a10 0%,#081210 50%,#060e1a 100%);border:1px solid rgba(34,197,94,.1);box-shadow:0 0 40px rgba(34,197,94,.04)}
+        .ab-hero::before{content:'';position:absolute;top:-40%;right:-10%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(34,197,94,.12),transparent 60%)}
+        .ab-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:99px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.18);font-size:10px;font-weight:700;color:var(--g3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px;position:relative}
+        .ab-hero h1{font-size:28px;font-weight:800;color:#fff;line-height:1.25;margin-bottom:10px;position:relative}
+        .ab-hero h1 em{font-style:normal;color:var(--g3)}
+        .ab-hero p{font-size:14.5px;color:var(--t2);line-height:1.85;position:relative}
+
+        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}
+        .stat{background:var(--card);border:1px solid var(--brd2);border-radius:var(--r2);padding:18px 12px;text-align:center;transition:all .25s var(--e)}
+        .stat:hover{border-color:var(--gbrd);transform:translateY(-2px);box-shadow:var(--gglow)}
+        .stat-n{font-size:28px;font-weight:800;color:var(--g);line-height:1}
+        .stat-l{font-size:10.5px;color:var(--t3);margin-top:5px;font-weight:500}
+
+        .ab-sec{margin-bottom:28px}
+        .ab-sec h2{font-size:20px;font-weight:800;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+        .ab-sec h2::before{content:'';width:3px;height:22px;border-radius:2px;background:var(--g)}
+        .ab-sec>p{font-size:14.5px;color:var(--t2);line-height:1.9}
+        .svc-g{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+        .svc{background:var(--card);border:1px solid var(--brd2);border-radius:var(--r2);padding:22px;transition:all .25s var(--e)}
+        .svc:hover{border-color:var(--gbrd);transform:translateY(-2px);box-shadow:var(--gglow)}
+        .svc-ic{width:42px;height:42px;border-radius:var(--r);background:var(--gbg);color:var(--g);display:grid;place-items:center;margin-bottom:12px}
+        .svc h3{font-size:14px;font-weight:700;color:#fff;margin-bottom:5px}
+        .svc p{font-size:12px;color:var(--t3);line-height:1.7}
+        .cc{background:var(--card);border:1px solid var(--brd2);border-radius:var(--r2);padding:24px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}
+        .cc h3{font-size:18px;font-weight:700;color:#fff;margin-bottom:8px}
+        .cc p{font-size:13px;color:var(--t2);line-height:2}
+        .cc-b{display:flex;align-items:center;gap:7px;padding:12px 24px;border-radius:var(--r);font-size:13px;font-weight:700;color:#fff;background:var(--g2);text-decoration:none;border:none;cursor:pointer;box-shadow:0 0 16px rgba(34,197,94,.2);transition:all .2s var(--e);font-family:var(--f)}
+        .cc-b:hover{background:var(--g);transform:translateY(-1px)}
+
+        /* ═══ PORTFOLIO ═══ */
+        .pt-in{max-width:840px;margin:0 auto;padding:24px 20px 80px;width:100%}
+        .pt-h{margin-bottom:24px}
+        .pt-h h1{font-size:26px;font-weight:800;color:#fff;margin-bottom:4px}
+        .pt-h p{font-size:13.5px;color:var(--t2)}
+        .pt-g{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+        .pc{background:var(--card);border:1px solid var(--brd2);border-radius:var(--r2);overflow:hidden;transition:all .3s var(--e)}
+        .pc:hover{border-color:var(--gbrd);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+        .pc-img{height:170px;position:relative;overflow:hidden}
+        .pc-bg{position:absolute;inset:0;transition:transform .5s var(--e)}
+        .pc:hover .pc-bg{transform:scale(1.05)}
+        .pc-img::after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 30%,rgba(8,12,20,.8))}
+        .pc-bd{position:absolute;top:10px;left:10px;z-index:2;padding:4px 10px;border-radius:99px;font-size:9.5px;font-weight:800;background:var(--g2);color:#fff;letter-spacing:.5px;box-shadow:0 0 10px rgba(34,197,94,.2)}
+        .pc-nf{padding:14px}
+        .pc-nf h3{font-size:14px;font-weight:700;color:#fff;margin-bottom:3px}
+        .pc-nf p{font-size:11.5px;color:var(--t3);line-height:1.6;margin-bottom:10px}
+        .pc-m{display:flex;gap:8px}
+        .pc-m span{font-size:9.5px;color:var(--t3);font-weight:600;display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;background:var(--bg3);border:1px solid var(--brd)}
+        .pc-m span svg{color:var(--g)}
+
+        ::-webkit-scrollbar{width:3px;height:3px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
+
+        @media(max-width:1080px){
+          .calc{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+          .cv-col{border-right:none;border-bottom:1px solid var(--brd)}
+          .cvw{height:min(42dvh,400px);min-height:240px;flex:none}
+          .stats{grid-template-columns:repeat(2,1fr)}
+          .svc-g,.pt-g{grid-template-columns:1fr}
+          .cc{grid-template-columns:1fr;text-align:center}.cc-b{justify-content:center}
+        }
+        @media(max-width:700px){
+          .calc{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+          .cv-col{flex-shrink:0}.cvw{height:34dvh;min-height:200px;max-height:340px;flex:none}
+          .rp{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+          .rpn.vis{flex:1;min-height:0}
+          .cv-tb .tb>span{display:none}.cv-tb .tb.on>span,.tgm .tb>span{display:inline}
+          .logo img{height:32px}.hdr-b span{display:none}.hdr-b{padding:8px 10px}
+          .nt{padding:9px 14px;font-size:11.5px}
+          .stats{grid-template-columns:repeat(2,1fr);gap:8px}.stat{padding:14px 10px}.stat-n{font-size:22px}
+          .svc-g,.pt-g{grid-template-columns:1fr}
+          .ab-hero{padding:24px 18px}.ab-hero h1{font-size:22px}
+          .pc-img{height:140px}.res-a{font-size:18px}
+          .cc{grid-template-columns:1fr;text-align:center;padding:18px}.cc-b{justify-content:center}
+          .cg{grid-template-columns:repeat(6,1fr)}
+        }
+    </style>
 </head>
 <body>
-
-<!-- ═══ HEADER ═══ -->
-<header class="hdr" id="app-header">
-    <div class="hdr-left">
-        <div class="logo">
-            <svg class="logo-icon" viewBox="0 0 28 28" fill="none">
-                <path d="M14 2L26 10V22L14 26L2 22V10L14 2Z" stroke="currentColor" stroke-width="1.5"
-                      fill="rgba(212,175,55,.08)"/>
-                <path d="M14 2L26 10L14 14L2 10L14 2Z" fill="rgba(212,175,55,.25)" stroke="currentColor"
-                      stroke-width="1"/>
-                <path d="M14 14V26" stroke="currentColor" stroke-width="1" opacity=".4"/>
+<header class="hdr" style="position:relative">
+    <div class="hdr-in">
+        <a class="logo" href="#" onclick="goP('calc');return false"><img
+                src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAKAAoADASIAAhEBAxEB/8QAHQABAAICAwEBAAAAAAAAAAAAAAcIBgkBBAUCA//EAF4QAAIBAwIDAwUGEAcLDAMBAAABAgMEBQYRBxIhCDFBEyJRYXEUFzJWgbMVFhgjNjdCUnJ0kZOVsdLTCTM1YnN1kiQmNDhTVYKUocHRJ0NGVGNkZYOisrTiRFfC4f/EABsBAQADAQEBAQAAAAAAAAAAAAADBAUCBgEH/8QALREBAAICAQMDAwQCAgMAAAAAAAECAwQRBRIxEyFBFSJRFDIzQiNxUvAkgZH/2gAMAwEAAhEDEQA/ALlgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH//2Q=="
+                alt="PROMET"></a>
+        <a href="tel:+998901234567" class="hdr-b" id="hdr-cta">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M5.5 1.5H3C2.17 1.5 1.5 2.17 1.5 3C1.5 8.25 5.75 12.5 11 12.5C11.83 12.5 12.5 11.83 12.5 11V8.5L9.5 7.5L8 9C6.58 8.23 5.27 6.92 4.5 5.5L6 4L5.5 1.5Z"
+                      stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
             </svg>
-            <div>
-                <span class="logo-text">Roof<span>CAD</span></span>
-                <span class="logo-edition">PRO</span>
-            </div>
-        </div>
+            <span>Qo'ng'iroq</span></a>
     </div>
-    <div class="hdr-right">
-        <span class="mode-pill" id="mode-badge">
-            <span class="mode-dot"></span>
-            CHIZISH
-        </span>
-    </div>
+    <nav class="nav">
+        <button class="nt on" data-p="calc" onclick="goP('calc')">Hisoblash</button>
+        <button class="nt" data-p="about" onclick="goP('about')">Kompaniya</button>
+        <button class="nt" data-p="portfolio" onclick="goP('portfolio')">Qilingan ishlar</button>
+    </nav>
 </header>
 
-<!-- ═══ TOOLBAR ═══ -->
-<nav class="toolbar" id="toolbar">
-    <div class="tb-group tb-modes">
-        <button class="tb-btn active" id="btn-draw" onclick="setAppMode('draw')">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M11.5 1.5L14.5 4.5L5 14H2V11L11.5 1.5Z" stroke="currentColor" stroke-width="1.3"
-                      stroke-linejoin="round"/>
-            </svg>
-            <span>Chizish</span>
-        </button>
-        <button class="tb-btn" id="btn-edit" onclick="setAppMode('edit')">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M2 8H6L7 5L9 11L10 8H14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
-                      stroke-linejoin="round"/>
-            </svg>
-            <span>Tahrir</span>
-        </button>
-    </div>
-    <div class="tb-sep"></div>
-    <div class="tb-group">
-        <button class="tb-btn tb-icon" onclick="undoAction()" title="Ortga">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M4 6H11C12.6569 6 14 7.34315 14 9C14 10.6569 12.6569 12 11 12H8" stroke="currentColor"
-                      stroke-width="1.3" stroke-linecap="round"/>
-                <path d="M6 4L4 6L6 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
-                      stroke-linejoin="round"/>
-            </svg>
-        </button>
-        <button class="tb-btn tb-add" onclick="newShape()">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M7 2V12M2 7H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            <span>Yangi</span>
-        </button>
-        <button class="tb-btn tb-danger" onclick="resetAll()">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M3 3L11 11M11 3L3 11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-            </svg>
-        </button>
-    </div>
-    <div class="tb-sep"></div>
-    <button class="tb-btn tb-snap active" id="btn-snap" onclick="toggleSnap()">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-            <rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-            <rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-            <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-        </svg>
-        <span>Snap</span>
-    </button>
-</nav>
-
-<!-- ═══ MAIN LAYOUT ═══ -->
-<div class="layout" id="main-layout">
-
-    <!-- ─── 2D Canvas column ─── -->
-    <div class="canvas-col">
-        <div class="canvas-wrap" id="cwrap">
-            <canvas id="cv"></canvas>
-            <div class="cv-tools">
-                <button class="cv-btn" onclick="zoomAt(1.3, cv.width/2, cv.height/2)">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                        <path d="M9 4V14M4 9H14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                    </svg>
-                </button>
-                <button class="cv-btn" onclick="zoomAt(1/1.3, cv.width/2, cv.height/2)">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                        <path d="M4 9H14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                    </svg>
-                </button>
-                <button class="cv-btn cv-btn-reset" onclick="resetCanvasView()">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14"
-                              stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-                        <path d="M2 4V8H6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
-                              stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Canvas hint overlay -->
-            <div class="cv-hint" id="cv-hint">
-                <div class="cv-hint-inner">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" opacity=".5">
-                        <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.2" stroke-dasharray="3 3"/>
-                        <path d="M16 10V22M10 16H22" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"
-                              opacity=".6"/>
-                    </svg>
-                    <p>Nuqtalar qo'yib shakl chizing</p>
-                    <span>1 barmoq = chizish · 2 barmoq = zoom/pan</span>
+<div class="pg on" id="pg-calc" style="overflow:hidden">
+    <div class="calc">
+        <div class="cv-col">
+            <div class="cv-tb">
+                <div class="tg tgm">
+                    <button class="tb on" id="b-draw" onclick="setMode('draw')">
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                            <path d="M11.5 1.5L14.5 4.5L5 14H2V11L11.5 1.5Z" stroke="currentColor" stroke-width="1.3"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                        <span>Chizish</span></button>
+                    <button class="tb" id="b-edit" onclick="setMode('edit')">
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                            <path d="M2 8H6L7 5L9 11L10 8H14" stroke="currentColor" stroke-width="1.3"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Tahrir</span></button>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ─── Right panel ─── -->
-    <div class="right-col" id="right-panel">
-
-        <!-- Tab bar for mobile -->
-        <div class="tab-bar" id="tab-bar">
-            <button class="tab active" data-tab="preview" onclick="switchTab('preview')">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M2 12L8 4L14 12" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
-                    <path d="M5 8L8 4L11 8" stroke="currentColor" stroke-width="1" opacity=".4"/>
-                </svg>
-                3D
-            </button>
-            <button class="tab" data-tab="roof" onclick="switchTab('roof')">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M2 10L8 4L14 10" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
-                    <rect x="2" y="10" width="12" height="4" stroke="currentColor" stroke-width="1.2" rx="0.5"/>
-                </svg>
-                Tom turi
-            </button>
-            <button class="tab" data-tab="dims" onclick="switchTab('dims')">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M4 2V14M12 2V14M4 8H12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-                    <path d="M2 4H6M10 4H14M2 12H6M10 12H14" stroke="currentColor" stroke-width="1"
-                          stroke-linecap="round" opacity=".5"/>
-                </svg>
-                O'lcham
-            </button>
-        </div>
-
-        <!-- 3D Preview -->
-        <div class="panel-section" data-panel="preview" id="panel-preview">
-            <div class="section-label">
-                <span class="section-label-text">3D Ko'rinish</span>
-                <span class="section-label-chip" id="pv-angle">315°</span>
-            </div>
-            <div class="preview-canvas-wrap">
-                <canvas id="pv"></canvas>
-                <div class="pv-tools">
-                    <button class="pv-btn" onclick="zoomPreview(1.15)">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                <div class="sp"></div>
+                <div class="tg">
+                    <button class="tb ti" onclick="undoAction()">
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 6H11C12.66 6 14 7.34 14 9C14 10.66 12.66 12 11 12H8" stroke="currentColor"
+                                  stroke-width="1.3" stroke-linecap="round"/>
+                            <path d="M6 4L4 6L6 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                                  stroke-linejoin="round"/>
                         </svg>
                     </button>
-                    <button class="pv-btn" onclick="zoomPreview(1/1.15)">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M3 8H13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                        </svg>
-                    </button>
-                    <button class="pv-btn pv-btn-reset" onclick="resetPreviewCamera()">
+                    <button class="tb ta" onclick="newShape()">
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M1.5 7C1.5 3.96243 3.96243 1.5 7 1.5C10.0376 1.5 12.5 3.96243 12.5 7C12.5 10.0376 10.0376 12.5 7 12.5"
-                                  stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-                            <path d="M1.5 3.5V7H5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"
+                            <path d="M7 2V12M2 7H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>Yangi</span></button>
+                    <button class="tb tx" onclick="resetAll()">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M3 3L11 11M11 3L3 11" stroke="currentColor" stroke-width="1.3"
+                                  stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="sp"></div>
+                <button class="tb tsn on" id="b-snap" onclick="toggleSnap()">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+                        <rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+                        <rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+                        <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+                    </svg>
+                    <span>Snap</span></button>
+            </div>
+            <div class="cvw" id="cwrap">
+                <canvas id="cv"></canvas>
+                <div class="cv-z">
+                    <button class="zb" onclick="zoomAt(1.3,cv.width/2,cv.height/2)">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <path d="M9 4V14M4 9H14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="zb" onclick="zoomAt(1/1.3,cv.width/2,cv.height/2)">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <path d="M4 9H14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="zb" onclick="resetView()">
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                            <path d="M2 8C2 4.69 4.69 2 8 2C11.31 2 14 4.69 14 8C14 11.31 11.31 14 8 14"
+                                  stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                            <path d="M2 4V8H6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
                                   stroke-linejoin="round"/>
                         </svg>
                     </button>
                 </div>
-                <div class="pv-status">
-                    <span id="pv-note">Shakl chizib 3D ko'ring</span>
-                    <span class="pv-drag-hint">Drag = orbit</span>
+                <div class="cv-hint" id="cv-hint">
+                    <div class="cv-hint-in">
+                        <div class="hi">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="1.5"
+                                      stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <p>Uy shaklini chizing</p><span>1 barmoq = chizish · 2 barmoq = zoom/pan</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- ─── TOM TURI PANEL ─── -->
-        <div class="panel-section" data-panel="roof" id="panel-roof">
-            <div class="section-label">
-                <span class="section-label-text">Tom turi</span>
-            </div>
-            <div class="roof-content">
-                <div class="roof-grid">
-                    <button class="roof-btn" data-roof="flat" onclick="setRoofType('flat')" title="Tekis tom">
-                        <div class="roof-btn-icon">
-                            <svg viewBox="0 0 48 32" fill="none">
-                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
-                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                <line x1="6" y1="18" x2="42" y2="18" stroke="currentColor" stroke-width="2.5"/>
-                            </svg>
-                        </div>
-                        <span>Tekis</span>
-                    </button>
-                    <button class="roof-btn" data-roof="shed" onclick="setRoofType('shed')" title="Bir tomonlama">
-                        <div class="roof-btn-icon">
-                            <svg viewBox="0 0 48 32" fill="none">
-                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
-                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                <polygon points="6,9 42,18 42,18 6,18" fill="rgba(212,175,55,.1)" stroke="currentColor"
-                                         stroke-width="2"/>
-                            </svg>
-                        </div>
-                        <span>Bir tomonli</span>
-                    </button>
-                    <button class="roof-btn active" data-roof="gable" onclick="setRoofType('gable')" title="Tizma">
-                        <div class="roof-btn-icon">
-                            <svg viewBox="0 0 48 32" fill="none">
-                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
-                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                <polygon points="6,18 24,5 42,18" fill="rgba(212,175,55,.1)" stroke="currentColor"
-                                         stroke-width="2"/>
-                            </svg>
-                        </div>
-                        <span>Tizma</span>
-                    </button>
-                    <button class="roof-btn" data-roof="hip" onclick="setRoofType('hip')" title="Hip">
-                        <div class="roof-btn-icon">
-                            <svg viewBox="0 0 48 32" fill="none">
-                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
-                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                <polygon points="6,18 14,8 34,8 42,18" fill="rgba(212,175,55,.1)" stroke="currentColor"
-                                         stroke-width="2"/>
-                                <line x1="14" y1="8" x2="34" y2="8" stroke="currentColor" stroke-width="1.5"/>
-                            </svg>
-                        </div>
-                        <span>Hip</span>
-                    </button>
-                    <button class="roof-btn" data-roof="pyramid" onclick="setRoofType('pyramid')" title="Piramida">
-                        <div class="roof-btn-icon">
-                            <svg viewBox="0 0 48 32" fill="none">
-                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
-                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                <polygon points="6,18 24,3 42,18" fill="rgba(212,175,55,.1)" stroke="currentColor"
-                                         stroke-width="2"/>
-                            </svg>
-                        </div>
-                        <span>Piramida</span>
-                    </button>
-                    <button class="roof-btn" data-roof="mansard" onclick="setRoofType('mansard')" title="Mansard">
-                        <div class="roof-btn-icon">
-                            <svg viewBox="0 0 48 32" fill="none">
-                                <rect x="6" y="18" width="36" height="10" fill="rgba(212,175,55,.06)"
-                                      stroke="currentColor" stroke-width="1.4" rx="1"/>
-                                <polygon points="6,18 10,11 16,7 32,7 38,11 42,18" fill="rgba(212,175,55,.1)"
-                                         stroke="currentColor" stroke-width="2"/>
-                                <line x1="16" y1="7" x2="32" y2="7" stroke="currentColor" stroke-width="1.5"/>
-                            </svg>
-                        </div>
-                        <span>Mansard</span>
-                    </button>
-                </div>
-
-                <!-- Pitch slider -->
-                <div class="pitch-row">
-                    <label class="pitch-lbl">Balandlik</label>
-                    <div class="pitch-slider-wrap">
-                        <input type="range" class="pitch-slider" id="pitch-sl" min="0.5" max="6" step="0.1" value="2.5"
-                               oninput="setRoofPitch(this.value)">
-                    </div>
-                    <output id="pitch-val" class="pitch-val">2.5m</output>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dims panel -->
-        <div class="panel-section panel-dims" data-panel="dims" id="panel-dims">
-            <div class="section-label">
-                <span class="section-label-text">O'lchamlar</span>
-            </div>
-            <div class="dims-scroll" id="dims">
-                <div class="empty-state">
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" opacity=".3">
-                        <rect x="4" y="8" width="32" height="24" rx="3" stroke="currentColor" stroke-width="1.5"
-                              stroke-dasharray="4 3"/>
-                        <path d="M14 20H26M20 14V26" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
-                              opacity=".5"/>
+        <div class="rp">
+            <div class="rp-tabs">
+                <button class="rpt on" data-t="roof" onclick="rpTab('roof')">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M1.5 9.5L7 3L12.5 9.5" stroke="currentColor" stroke-width="1.4"
+                              stroke-linejoin="round"/>
+                        <rect x="1.5" y="9.5" width="11" height="3" rx=".5" stroke="currentColor" stroke-width="1.1"/>
                     </svg>
-                    <p>Shakl chizing yoki<br>tezkor shakl qo'shing</p>
+                    Tom
+                </button>
+                <button class="rpt" data-t="prof" onclick="rpTab('prof')">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M1 4L3 2L5 4L7 2L9 4L11 2L13 4M1 8L3 6L5 8L7 6L9 8L11 6L13 8M1 12L3 10L5 12L7 10L9 12L11 10L13 12"
+                              stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+                    </svg>
+                    Profnastil
+                </button>
+                <button class="rpt" data-t="color" onclick="rpTab('color')">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2"/>
+                        <circle cx="7" cy="4" r="1.5" fill="currentColor"/>
+                        <circle cx="4.5" cy="8.5" r="1.5" fill="currentColor"/>
+                        <circle cx="9.5" cy="8.5" r="1.5" fill="currentColor"/>
+                    </svg>
+                    Rang
+                </button>
+                <button class="rpt" data-t="dims" onclick="rpTab('dims')">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M3 1V13M11 1V13M3 7H11" stroke="currentColor" stroke-width="1.1"
+                              stroke-linecap="round"/>
+                    </svg>
+                    O'lcham
+                </button>
+            </div>
+            <div class="rpn vis" data-t="roof">
+                <div class="rpn-h"><h3>Tom turi va balandligi</h3></div>
+                <div class="rw">
+                    <div class="rg">
+                        <button class="rf" data-r="flat" onclick="setRoof('flat')">
+                            <div class="rf-i">
+                                <svg viewBox="0 0 52 32" fill="none">
+                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
+                                          stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                    <line x1="4" y1="18" x2="48" y2="18" stroke="currentColor" stroke-width="2.5"/>
+                                </svg>
+                            </div>
+                            <span>Tekis</span></button>
+                        <button class="rf" data-r="shed" onclick="setRoof('shed')">
+                            <div class="rf-i">
+                                <svg viewBox="0 0 52 32" fill="none">
+                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
+                                          stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                    <polygon points="4,8 48,18 4,18" fill="rgba(34,197,94,.05)" stroke="currentColor"
+                                             stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <span>Bir tomonli</span></button>
+                        <button class="rf on" data-r="gable" onclick="setRoof('gable')">
+                            <div class="rf-i">
+                                <svg viewBox="0 0 52 32" fill="none">
+                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
+                                          stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                    <polygon points="4,18 26,4 48,18" fill="rgba(34,197,94,.05)" stroke="currentColor"
+                                             stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <span>Tizma</span></button>
+                        <button class="rf" data-r="hip" onclick="setRoof('hip')">
+                            <div class="rf-i">
+                                <svg viewBox="0 0 52 32" fill="none">
+                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
+                                          stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                    <polygon points="4,18 14,7 38,7 48,18" fill="rgba(34,197,94,.05)"
+                                             stroke="currentColor" stroke-width="2"/>
+                                    <line x1="14" y1="7" x2="38" y2="7" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                            <span>Hip</span></button>
+                        <button class="rf" data-r="pyramid" onclick="setRoof('pyramid')">
+                            <div class="rf-i">
+                                <svg viewBox="0 0 52 32" fill="none">
+                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
+                                          stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                    <polygon points="4,18 26,2 48,18" fill="rgba(34,197,94,.05)" stroke="currentColor"
+                                             stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <span>Piramida</span></button>
+                        <button class="rf" data-r="mansard" onclick="setRoof('mansard')">
+                            <div class="rf-i">
+                                <svg viewBox="0 0 52 32" fill="none">
+                                    <rect x="4" y="18" width="44" height="10" fill="rgba(34,197,94,.03)"
+                                          stroke="currentColor" stroke-width="1.4" rx="1"/>
+                                    <polygon points="4,18 9,11 16,6 36,6 43,11 48,18" fill="rgba(34,197,94,.05)"
+                                             stroke="currentColor" stroke-width="2"/>
+                                    <line x1="16" y1="6" x2="36" y2="6" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </div>
+                            <span>Mansard</span></button>
+                    </div>
+                    <div class="pr"><span class="prl">Balandlik</span>
+                        <div style="flex:1;position:relative">
+                            <div class="prt">
+                                <div class="prf" id="pf" style="width:36%"></div>
+                            </div>
+                            <input type="range" class="prs" id="psl" min="0.5" max="6" step="0.1" value="2.5"
+                                   oninput="setPitch(this.value)"></div>
+                        <span class="prv" id="pv">2.5 m</span></div>
+                </div>
+            </div>
+            <div class="rpn" data-t="prof">
+                <div class="rpn-h"><h3>Profnastil parametrlari</h3></div>
+                <div class="pw">
+                    <div class="pg2">
+                        <div class="pgl">Profnastil turi</div>
+                        <div class="pps" id="pt-type">
+                            <button class="pp on" data-v="C8" onclick="sPT(this)">C-8</button>
+                            <button class="pp" data-v="C10" onclick="sPT(this)">C-10</button>
+                            <button class="pp" data-v="C20" onclick="sPT(this)">C-20</button>
+                            <button class="pp" data-v="C21" onclick="sPT(this)">C-21</button>
+                            <button class="pp" data-v="HC35" onclick="sPT(this)">HC-35</button>
+                            <button class="pp" data-v="HC44" onclick="sPT(this)">HC-44</button>
+                            <button class="pp" data-v="H57" onclick="sPT(this)">H-57</button>
+                            <button class="pp" data-v="H60" onclick="sPT(this)">H-60</button>
+                            <button class="pp" data-v="H75" onclick="sPT(this)">H-75</button>
+                        </div>
+                    </div>
+                    <div class="pg2">
+                        <div class="pgl">Qalinligi (mm)</div>
+                        <div class="pps" id="pt-th">
+                            <button class="pp" data-v="0.35" onclick="sTH(this)">0.35</button>
+                            <button class="pp on" data-v="0.40" onclick="sTH(this)">0.40</button>
+                            <button class="pp" data-v="0.45" onclick="sTH(this)">0.45</button>
+                            <button class="pp" data-v="0.50" onclick="sTH(this)">0.50</button>
+                            <button class="pp" data-v="0.55" onclick="sTH(this)">0.55</button>
+                            <button class="pp" data-v="0.60" onclick="sTH(this)">0.60</button>
+                            <button class="pp" data-v="0.70" onclick="sTH(this)">0.70</button>
+                        </div>
+                    </div>
+                    <div class="pg2">
+                        <div class="pgl">Ishlab chiqaruvchi davlat</div>
+                        <div class="pps" id="pt-cn">
+                            <button class="pp" data-v="china" onclick="sCN(this)">🇨🇳 Xitoy</button>
+                            <button class="pp on" data-v="russia" onclick="sCN(this)">🇷🇺 Rossiya</button>
+                            <button class="pp" data-v="korea" onclick="sCN(this)">🇰🇷 Koreya</button>
+                            <button class="pp" data-v="kazakhstan" onclick="sCN(this)">🇰🇿 Qozog'iston</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="rpn" data-t="color">
+                <div class="rpn-h"><h3>Profnastil rangi</h3></div>
+                <div class="pw">
+                    <div class="pg2">
+                        <div class="pgl">RAL ranglar</div>
+                        <div class="cg" id="cg"></div>
+                        <div class="ci">
+                            <div class="ci-p" id="cp" style="background:#5E2028"></div>
+                            <div class="ci-d"><strong id="ccl">RAL 3005</strong><br><span id="cnl">Qizil-to'q</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="rpn" data-t="dims">
+                <div class="rpn-h"><h3>O'lchamlar</h3></div>
+                <div class="ds" id="dims">
+                    <div class="empty">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" opacity=".3">
+                            <rect x="4" y="8" width="32" height="24" rx="3" stroke="currentColor" stroke-width="1.5"
+                                  stroke-dasharray="4 3"/>
+                            <path d="M14 20H26M20 14V26" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                                  opacity=".5"/>
+                        </svg>
+                        <p>Shakl chizing</p></div>
+                </div>
+            </div>
+            <div class="res">
+                <div class="res-in">
+                    <div class="res-l"><span class="res-lb">Tom maydoni / Narxi</span><span class="res-sub" id="rs">C-8 · 0.40mm · Rossiya</span>
+                    </div>
+                    <div class="res-r">
+                        <div class="res-a" id="ra">0.00 m²</div>
+                        <div class="res-c" id="rc">0 so'm</div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Result -->
-        <div class="result-bar" id="result-bar">
-            <div class="result-inner">
-                <div class="result-info">
-                    <span class="result-label">Umumiy maydon</span>
-                    <span class="result-sub">Har bir shakl mustaqil</span>
+<div class="pg" id="pg-about">
+    <div class="pg-s">
+        <div class="ab-in">
+            <div class="ab-hero">
+                <div class="ab-badge">⭐ 2015-yildan buyon</div>
+                <h1><em>PROMET</em> — O'zbekistonda tom yopish yetakchisi</h1>
+                <p>10 yildan ortiq tajribaga ega professional jamoamiz bilan mijozlarimizga yuqori sifatli profnastil va
+                    tom qoplama materiallarini yetkazib beramiz.</p></div>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-n">10+</div>
+                    <div class="stat-l">Yillik tajriba</div>
                 </div>
-                <div class="result-value" id="area-val">0.00 m²</div>
+                <div class="stat">
+                    <div class="stat-n">5000+</div>
+                    <div class="stat-l">Loyihalar</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-n">50+</div>
+                    <div class="stat-l">Xodimlar</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-n">12</div>
+                    <div class="stat-l">Viloyatlarda</div>
+                </div>
+            </div>
+            <div class="ab-sec"><h2>Biz haqimizda</h2>
+                <p>Promet Tom Markazi — O'zbekistonda tom yopish sohasida eng ishonchli kompaniyalardan biri. Biz har
+                    xil turdagi profnastil va boshqa tom qoplama materiallarini bevosita ishlab chiqaruvchilardan import
+                    qilamiz. Barcha mahsulotlarimiz sertifikatlangan va kafolat bilan ta'minlangan.</p></div>
+            <div class="ab-sec"><h2>Xizmatlarimiz</h2>
+                <div class="svc-g">
+                    <div class="svc">
+                        <div class="svc-ic">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                                <path d="M3 16L11 4L19 16" stroke="currentColor" stroke-width="1.5"
+                                      stroke-linejoin="round"/>
+                                <rect x="3" y="16" width="16" height="3" rx="1" stroke="currentColor"
+                                      stroke-width="1.2"/>
+                            </svg>
+                        </div>
+                        <h3>Tom yopish</h3>
+                        <p>Professional jamoa tomonidan tez va sifatli tom yopish. 5 yilgacha kafolat.</p></div>
+                    <div class="svc">
+                        <div class="svc-ic">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                                <path d="M2 6L4 4L6 6L8 4L10 6L12 4L14 6L16 4L18 6L20 4M2 11L4 9L6 11L8 9L10 11L12 9L14 11L16 9L18 11L20 9"
+                                      stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <h3>Profnastil sotish</h3>
+                        <p>Rossiya, Xitoy, Koreya ishlab chiqarishidan sifatli profnastillar.</p></div>
+                    <div class="svc">
+                        <div class="svc-ic">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                                <rect x="3" y="3" width="16" height="16" rx="2" stroke="currentColor"
+                                      stroke-width="1.3"/>
+                                <path d="M7 11H15M11 7V15" stroke="currentColor" stroke-width="1.3"
+                                      stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h3>Tom hisoblash</h3>
+                        <p>Bepul tom maydonini hisoblash va smeta tuzib berish xizmati.</p></div>
+                    <div class="svc">
+                        <div class="svc-ic">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.3"/>
+                                <path d="M11 6V11L14 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                                      stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <h3>Tez yetkazib berish</h3>
+                        <p>O'zbekiston bo'ylab 1–3 kun ichida bepul yetkazib berish.</p></div>
+                </div>
+            </div>
+            <div class="ab-sec"><h2>Bog'lanish</h2>
+                <div class="cc">
+                    <div><h3>Biz bilan bog'laning</h3>
+                        <p>📍 Toshkent sh., Chilonzor tumani<br>📞 +998 90 123 45 67<br>✈️ @promet_tom<br>🕐 Dush–Shan,
+                            09:00–18:00</p></div>
+                    <a href="https://t.me/promet_tom" class="cc-b" target="_blank">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 3L3 10.5L9.5 12.5L11 20L14.5 16L18.5 19L21 3Z" stroke="currentColor"
+                                  stroke-width="1.5" stroke-linejoin="round"/>
+                        </svg>
+                        Telegram</a></div>
             </div>
         </div>
+    </div>
+</div>
 
-    </div><!-- .right-col -->
-</div><!-- .layout -->
+<div class="pg" id="pg-portfolio">
+    <div class="pg-s">
+        <div class="pt-in">
+            <div class="pt-h"><h1>Qilingan ishlar</h1>
+                <p>Jamoamiz tomonidan bajarilgan loyihalar</p></div>
+            <div class="pt-g" id="pgrid"></div>
+        </div>
+    </div>
+</div>
+<script>
+    let tg=null;try{if(window.Telegram&&window.Telegram.WebApp){tg=window.Telegram.WebApp;tg.ready();if(tg.expand)tg.expand();if(tg.disableVerticalSwipes)tg.disableVerticalSwipes();if(tg.setHeaderColor)tg.setHeaderColor('#080c14');if(tg.setBackgroundColor)tg.setBackgroundColor('#080c14');const c=document.getElementById('hdr-cta');if(c)c.style.display='none'}}catch(e){}
+    function hap(t){try{if(tg&&tg.HapticFeedback)tg.HapticFeedback[t]?.()}catch(e){}}
 
-<script src="app.js"></script>
+    function goP(p){document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));document.getElementById('pg-'+p).classList.add('on');document.querySelectorAll('.nt').forEach(t=>t.classList.toggle('on',t.dataset.p===p));if(p==='calc')requestAnimationFrame(()=>{initCv();redraw()});hap('selectionChanged')}
+    function rpTab(t){document.querySelectorAll('.rpt').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.rpn').forEach(p=>p.classList.toggle('vis',p.dataset.t===t));hap('selectionChanged')}
+
+    const G=40,CD=18,HR=9,ALP='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const SC=['#22c55e','#3b82f6','#a78bfa','#f59e0b','#ef4444','#22d3ee'];
+    let shapes=[],cur=null,mode='draw',snap=true,sel=null,hovA=null,hovP=null,drg=null,ms={x:0,y:0},dirty=true;
+    const V={s:1,tx:0,ty:0,mn:.07,mx:14};const ptrs=new Map();let pinch=null;
+    const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+    const cfg={roof:'gable',pitch:2.5,type:'C8',thick:'0.40',country:'russia'};
+    const PRICES={china:{0.35:42000,0.40:48000,0.45:54000,0.50:60000,0.55:67000,0.60:74000,0.70:88000},russia:{0.35:55000,0.40:62000,0.45:70000,0.50:78000,0.55:86000,0.60:95000,0.70:112000},korea:{0.35:58000,0.40:66000,0.45:74000,0.50:83000,0.55:92000,0.60:102000,0.70:120000},kazakhstan:{0.35:45000,0.40:52000,0.45:58000,0.50:65000,0.55:72000,0.60:80000,0.70:95000}};
+    const TMUL={C8:1,C10:1.02,C20:1.08,C21:1.10,HC35:1.18,HC44:1.25,H57:1.32,H60:1.38,H75:1.48};
+    const RMUL={flat:1.0,shed:1.15,gable:1.22,hip:1.30,pyramid:1.28,mansard:1.45};
+    const RAL=[{c:'1014',n:"Sarg'ish",h:'#E1CC4F'},{c:'1015',n:"Och sarg'ish",h:'#E6D690'},{c:'2004',n:"To'q sariq",h:'#E75B12'},{c:'3003',n:'Yoqut qizil',h:'#8D1D2C'},{c:'3005',n:"Qizil-to'q",h:'#5E2028'},{c:'3009',n:'Oksid qizil',h:'#6D342D'},{c:'3011',n:'Qizil-jigarrang',h:'#792423'},{c:'5002',n:"Ko'k",h:'#00387B'},{c:'5005',n:"Signal ko'k",h:'#154889'},{c:'5021',n:"Suv ko'k",h:'#07737A'},{c:'6002',n:'Yashil',h:'#325928'},{c:'6005',n:"Yashil-to'q",h:'#0F4336'},{c:'6020',n:'Xrom yashil',h:'#37422F'},{c:'7004',n:'Kulrang',h:'#9EA0A1'},{c:'7024',n:'Grafit',h:'#474A50'},{c:'7035',n:'Och kulrang',h:'#CBD0CC'},{c:'8004',n:'Mis jigarrang',h:'#8D4931'},{c:'8017',n:'Shokolad',h:'#44322D'},{c:'9002',n:'Oq-kulrang',h:'#E0DDD4'},{c:'9003',n:'Signal oq',h:'#F4F4F4'},{c:'9005',n:'Qora',h:'#0A0A0D'},{c:'9006',n:'Oq alyuminiy',h:'#A5A8A6'}];
+    const PROJ=[{t:'Chorsu turar-joy',d:'4 qavatli binosiga HC-35 profnastil bilan tom yopildi.',a:'1 200 m²',tp:'HC-35',cl:'#5E2028',y:'2024'},{t:'Toshkent 32-maktab',d:'Maktab binosiga yangi tom yopish ishlari.',a:'2 400 m²',tp:'H-60',cl:'#154889',y:'2024'},{t:'Chilonzor savdo markazi',d:'Mansard tipidagi tom loyihasi bajarildi.',a:'3 200 m²',tp:'H-75',cl:'#474A50',y:'2023'},{t:'Samarqand mehmonxonasi',d:'5 yulduzli mehmonxona uchun premium tom.',a:'1 800 m²',tp:'HC-44',cl:'#44322D',y:'2023'},{t:"Farg'ona sanoat binosi",d:'Ishlab chiqarish sehi uchun tom yopish.',a:'5 600 m²',tp:'H-75',cl:'#9EA0A1',y:'2023'},{t:'Namangan turar-joy',d:'120 xonadonlik yangi turar-joy majmuasi.',a:'4 200 m²',tp:'C-21',cl:'#325928',y:'2022'}];
+
+    function sPT(e){document.querySelectorAll('#pt-type .pp').forEach(b=>b.classList.remove('on'));e.classList.add('on');cfg.type=e.dataset.v;upC();hap('impactLight')}
+    function sTH(e){document.querySelectorAll('#pt-th .pp').forEach(b=>b.classList.remove('on'));e.classList.add('on');cfg.thick=e.dataset.v;upC();hap('impactLight')}
+    function sCN(e){document.querySelectorAll('#pt-cn .pp').forEach(b=>b.classList.remove('on'));e.classList.add('on');cfg.country=e.dataset.v;upC();hap('impactLight')}
+    function setRoof(r){cfg.roof=r;document.querySelectorAll('.rf').forEach(b=>b.classList.toggle('on',b.dataset.r===r));upC();hap('impactLight')}
+    function setPitch(v){cfg.pitch=parseFloat(v);document.getElementById('pv').textContent=parseFloat(v).toFixed(1)+' m';document.getElementById('pf').style.width=((v-.5)/5.5*100)+'%';upC()}
+    function initClr(){document.getElementById('cg').innerHTML=RAL.map((c,i)=>'<div class="cl'+(i===4?' on':'')+'" style="background:'+c.h+'" data-i="'+i+'" onclick="pickClr('+i+')"></div>').join('')}
+    function pickClr(i){document.querySelectorAll('.cl').forEach(c=>c.classList.remove('on'));document.querySelectorAll('.cl')[i].classList.add('on');document.getElementById('cp').style.background=RAL[i].h;document.getElementById('ccl').textContent='RAL '+RAL[i].c;document.getElementById('cnl').textContent=RAL[i].n;hap('selectionChanged')}
+    function initPort(){document.getElementById('pgrid').innerHTML=PROJ.map(p=>'<div class="pc"><div class="pc-img"><div class="pc-bg" style="background:linear-gradient(135deg,'+p.cl+',#080c14)"></div><span class="pc-bd">'+p.tp+'</span></div><div class="pc-nf"><h3>'+p.t+'</h3><p>'+p.d+'</p><div class="pc-m"><span><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1"/></svg>'+p.a+'</span><span><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.1"/><path d="M6 3V6H9" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>'+p.y+'</span></div></div></div>').join('')}
+
+    function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+    function normA(a){return((a%(2*Math.PI))+2*Math.PI)%(2*Math.PI)}
+    function betCCW(a,s,e){a=normA(a);s=normA(s);e=normA(e);return s<=e?(a>=s&&a<=e):(a>=s||a<=e)}
+    function pD(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+    function pM(a,b){return{x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+    function s2w(sx,sy){return{x:(sx-V.tx)/V.s,y:(sy-V.ty)/V.s}}
+    function zoomAt(f,sx,sy){const ns=clamp(V.s*f,V.mn,V.mx);if(ns===V.s)return;const r=ns/V.s;V.tx=sx-r*(sx-V.tx);V.ty=sy-r*(sy-V.ty);V.s=ns;render()}
+    function resetView(){V.s=1;V.tx=0;V.ty=0;render()}
+    function vc(){return s2w(cv.width/2,cv.height/2)}
+    function csp(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+    function ahr(){return(HR+4)/V.s}function phr(){return 12/V.s}function cdw(){return CD/V.s}
+    function arcG(x1,y1,x2,y2,b){if(Math.abs(b)<.5)return null;const mx=(x1+x2)/2,my=(y1+y2)/2,dx=x2-x1,dy=y2-y1,ln=Math.hypot(dx,dy);if(ln<1)return null;const px=-dy/ln,py=dx/ln,ax=mx+b*px,ay=my+b*py;const D=2*(x1*(ay-y2)+ax*(y2-y1)+x2*(y1-ay));if(Math.abs(D)<.001)return null;const ccx=((x1*x1+y1*y1)*(ay-y2)+(ax*ax+ay*ay)*(y2-y1)+(x2*x2+y2*y2)*(y1-ay))/D;const ccy=((x1*x1+y1*y1)*(x2-ax)+(ax*ax+ay*ay)*(x1-x2)+(x2*x2+y2*y2)*(ax-x1))/D;const r=Math.hypot(x1-ccx,y1-ccy),sa=Math.atan2(y1-ccy,x1-ccx),ea=Math.atan2(y2-ccy,x2-ccx),ap=Math.atan2(ay-ccy,ax-ccx);const acw=!betCCW(ap,sa,ea),span=acw?normA(sa-ea):normA(ea-sa);return{cx:ccx,cy:ccy,r,sa,ea,acw,span}}
+    function aLen(x1,y1,x2,y2,b){const a=arcG(x1,y1,x2,y2,b);return a?a.r*a.span:Math.hypot(x2-x1,y2-y1)}
+    function hPos(x1,y1,x2,y2,b){const dx=x2-x1,dy=y2-y1,l=Math.hypot(dx,dy)||1;return{x:(x1+x2)/2+b*(-dy/l),y:(y1+y2)/2+b*(dx/l)}}
+    function pOff(x1,y1,x2,y2,mx,my){const dx=x2-x1,dy=y2-y1,l=Math.hypot(dx,dy)||1;return(mx-(x1+x2)/2)*(-dy/l)+(my-(y1+y2)/2)*(dx/l)}
+    function sPoly(sh,n=24){const o=[];for(let i=0;i<sh.pts.length;i++){const j=(i+1)%sh.pts.length,b=sh.segs[i].bulge||0;if(Math.abs(b)<.5)o.push({x:sh.pts[i].x,y:sh.pts[i].y});else{const a=arcG(sh.pts[i].x,sh.pts[i].y,sh.pts[j].x,sh.pts[j].y,b);if(!a){o.push({x:sh.pts[i].x,y:sh.pts[i].y});continue}const d=a.acw?-1:1;for(let k=0;k<n;k++){const ang=a.sa+d*a.span*(k/n);o.push({x:a.cx+a.r*Math.cos(ang),y:a.cy+a.r*Math.sin(ang)})}}}return o}
+    function sArea(sh){if(!sh.closed||sh.pts.length<3)return 0;const a=sPoly(sh,32);let s=0;for(let i=0;i<a.length;i++){const j=(i+1)%a.length;s+=a[i].x*a[j].y-a[j].x*a[i].y}return Math.abs(s)/2}
+    function ptIn(x,y,sh){if(!sh.closed||sh.pts.length<3)return false;const a=sPoly(sh,18);let ins=false;for(let i=0,j=a.length-1;i<a.length;j=i++){const xi=a[i].x,yi=a[i].y,xj=a[j].x,yj=a[j].y;if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)ins=!ins}return ins}
+    function topAt(x,y){for(let i=shapes.length-1;i>=0;i--)if(ptIn(x,y,shapes[i]))return i;return null}
+    function initCv(){const w=document.getElementById('cwrap'),dpr=devicePixelRatio||1;cv.width=Math.max(1,Math.floor(w.clientWidth*dpr));cv.height=Math.max(1,Math.floor(w.clientHeight*dpr));cv.style.width=w.clientWidth+'px';cv.style.height=w.clientHeight+'px';cx.scale(dpr,dpr)}
+    function sync(){render();upC();upH()}
+    function redraw(){sync();if(dirty){dirty=false;upD()}}
+    function render(){const dpr=devicePixelRatio||1,w=cv.width/dpr,h=cv.height/dpr;cx.clearRect(0,0,w,h);cx.save();cx.setTransform(V.s,0,0,V.s,V.tx,V.ty);dG(w,h);shapes.forEach((sh,i)=>dS(sh,i,mode==='edit'&&sel===i));if(cur)dCur();cx.restore()}
+    function dG(cw,ch){const s=V.s,lw=1/s;const gx0=Math.floor((-V.tx/s)/G)*G,gy0=Math.floor((-V.ty/s)/G)*G;const gx1=Math.ceil(((cw-V.tx)/s)/G)*G,gy1=Math.ceil(((ch-V.ty)/s)/G)*G;for(let x=gx0;x<=gx1;x+=G){cx.strokeStyle=(x/G)%5===0?'rgba(34,197,94,.10)':'rgba(34,197,94,.03)';cx.lineWidth=lw;cx.beginPath();cx.moveTo(x,gy0);cx.lineTo(x,gy1);cx.stroke()}for(let y=gy0;y<=gy1;y+=G){cx.strokeStyle=(y/G)%5===0?'rgba(34,197,94,.10)':'rgba(34,197,94,.03)';cx.lineWidth=lw;cx.beginPath();cx.moveTo(gx0,y);cx.lineTo(gx1,y);cx.stroke()}cx.fillStyle='rgba(34,197,94,.18)';cx.font=`${8/s}px "JetBrains Mono",monospace`;for(let x=Math.ceil(gx0/G/5)*G*5;x<=gx1;x+=G*5)cx.fillText((x/G)+'m',x+2/s,gy0+10/s);for(let y=Math.ceil(gy0/G/5)*G*5;y<=gy1;y+=G*5)cx.fillText((y/G)+'m',gx0+2/s,y-2/s)}
+    function bP(sh){cx.beginPath();for(let i=0;i<sh.pts.length;i++){const j=(i+1)%sh.pts.length,b=sh.segs[i].bulge||0;if(i===0)cx.moveTo(sh.pts[0].x,sh.pts[0].y);if(Math.abs(b)<.5)cx.lineTo(sh.pts[j].x,sh.pts[j].y);else{const a=arcG(sh.pts[i].x,sh.pts[i].y,sh.pts[j].x,sh.pts[j].y,b);if(a)cx.arc(a.cx,a.cy,a.r,a.sa,a.ea,a.acw);else cx.lineTo(sh.pts[j].x,sh.pts[j].y)}}if(sh.closed)cx.closePath()}
+    function dS(sh,si,isSel){const s=V.s,col=isSel?'#22c55e':SC[si%SC.length];bP(sh);cx.fillStyle=isSel?'rgba(34,197,94,.06)':'rgba(59,130,246,.03)';cx.fill();cx.strokeStyle=col;cx.lineWidth=(isSel?2.5:1.8)/s;cx.setLineDash([]);bP(sh);cx.stroke();sh.pts.forEach((p,i)=>{cx.beginPath();cx.arc(p.x,p.y,5/s,0,Math.PI*2);cx.fillStyle=col;cx.fill();cx.strokeStyle='#0c1220';cx.lineWidth=1.5/s;cx.stroke();cx.fillStyle=col;cx.font=`600 ${10/s}px "JetBrains Mono",monospace`;cx.fillText(ALP[i]+(si+1),p.x+7/s,p.y-7/s)});sh.pts.forEach((p,i)=>{const j=(i+1)%sh.pts.length,b=sh.segs[i].bulge||0,hp=hPos(p.x,p.y,sh.pts[j].x,sh.pts[j].y,b);const vl=(aLen(p.x,p.y,sh.pts[j].x,sh.pts[j].y,b)/G).toFixed(2),ml=sh.lens[i]!=null?sh.lens[i]:vl,txt=ml+'m';cx.font=`500 ${9/s}px "JetBrains Mono",monospace`;const tw=cx.measureText(txt).width;cx.fillStyle='rgba(12,18,32,.88)';cx.beginPath();cx.roundRect(hp.x-tw/2-5/s,hp.y-21/s,tw+10/s,16/s,4/s);cx.fill();cx.strokeStyle='rgba(34,197,94,.15)';cx.lineWidth=.8/s;cx.stroke();cx.fillStyle='#94a3b8';cx.fillText(txt,hp.x-tw/2,hp.y-10/s)});if(isSel){sh.pts.forEach((p,i)=>{const j=(i+1)%sh.pts.length,b=sh.segs[i].bulge||0,hp=hPos(p.x,p.y,sh.pts[j].x,sh.pts[j].y,b);const hv=hovA&&hovA.si===si&&hovA.seg===i;cx.beginPath();cx.arc(hp.x,hp.y,(hv?HR+2:HR)/s,0,Math.PI*2);cx.fillStyle=hv?'#22c55e':(b?'rgba(167,139,250,.75)':'rgba(59,130,246,.6)');cx.fill();cx.strokeStyle='#0c1220';cx.lineWidth=2/s;cx.stroke();cx.fillStyle='#fff';cx.font=`bold ${9/s}px sans-serif`;cx.textAlign='center';cx.textBaseline='middle';cx.fillText('\u2322',hp.x,hp.y+1/s);cx.textAlign='left';cx.textBaseline='alphabetic'});sh.pts.forEach((p,i)=>{if(hovP&&hovP.si===si&&hovP.pi===i){cx.beginPath();cx.arc(p.x,p.y,12/s,0,Math.PI*2);cx.strokeStyle='rgba(34,197,94,.4)';cx.lineWidth=2/s;cx.stroke()}})}}
+    function dCur(){const p=cur.pts;if(!p.length)return;const s=V.s;cx.strokeStyle='#22c55e';cx.lineWidth=2/s;cx.setLineDash([5/s,4/s]);cx.beginPath();cx.moveTo(p[0].x,p[0].y);p.forEach((pt,i)=>{if(i)cx.lineTo(pt.x,pt.y)});cx.lineTo(ms.x,ms.y);cx.stroke();cx.setLineDash([]);if(p.length>2&&Math.hypot(p[0].x-ms.x,p[0].y-ms.y)<cdw()){cx.beginPath();cx.arc(p[0].x,p[0].y,cdw(),0,Math.PI*2);cx.strokeStyle='rgba(34,197,94,.3)';cx.lineWidth=2/s;cx.setLineDash([3/s,3/s]);cx.stroke();cx.setLineDash([])}p.forEach((pt,i)=>{cx.beginPath();cx.arc(pt.x,pt.y,5/s,0,Math.PI*2);cx.fillStyle=i===0?'#22c55e':'#3b82f6';cx.fill();cx.strokeStyle='#0c1220';cx.lineWidth=1.5/s;cx.stroke();cx.fillStyle=i===0?'#22c55e':'#3b82f6';cx.font=`600 ${10/s}px "JetBrains Mono",monospace`;cx.fillText(ALP[i],pt.x+7/s,pt.y-7/s)})}
+
+    cv.addEventListener('wheel',e=>{e.preventDefault();const sp=csp(e);zoomAt(e.deltaY<0?1.14:1/1.14,sp.x,sp.y)},{passive:false});
+    cv.addEventListener('pointerdown',e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(x){}const sp=csp(e);ptrs.set(e.pointerId,sp);if(ptrs.size>=2){drg=null;const ps=[...ptrs.values()];pinch={d0:pD(ps[0],ps[1]),s0:V.s,tx0:V.tx,ty0:V.ty,m0:pM(ps[0],ps[1])};return}pinch=null;const w=s2w(sp.x,sp.y);if(mode==='edit'){if(sel!=null){const sh=shapes[sel];for(let i=0;i<sh.pts.length;i++){const j=(i+1)%sh.pts.length,b=sh.segs[i].bulge||0,hp=hPos(sh.pts[i].x,sh.pts[i].y,sh.pts[j].x,sh.pts[j].y,b);if(Math.hypot(hp.x-w.x,hp.y-w.y)<ahr()){drg={t:'arc',si:sel,seg:i};cv.style.cursor='grabbing';return}}for(let i=0;i<sh.pts.length;i++){if(Math.hypot(sh.pts[i].x-w.x,sh.pts[i].y-w.y)<phr()){drg={t:'pt',si:sel,pi:i};cv.style.cursor='grabbing';return}}}const hit=topAt(w.x,w.y);if(hit!=null){sel=hit;dirty=true;upD();render();drg={t:'sh',si:hit,sx:w.x,sy:w.y,orig:shapes[hit].pts.map(p=>({x:p.x,y:p.y}))};cv.style.cursor='grabbing';hap('impactLight');return}sel=null;dirty=true;redraw();return}if(mode==='draw'){if(!cur)cur={pts:[],segs:[],lens:[],closed:false};const wx=snap?Math.round(w.x/G)*G:w.x,wy=snap?Math.round(w.y/G)*G:w.y;if(cur.pts.length>2&&Math.hypot(cur.pts[0].x-wx,cur.pts[0].y-wy)<cdw()){closeSh();return}cur.pts.push({x:wx,y:wy});cur.segs.push({type:'line',bulge:0});cur.lens.push(null);upH();render();hap('impactLight')}});
+    cv.addEventListener('pointermove',e=>{const sp=csp(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,sp);if(ptrs.size===2&&pinch){const ps=[...ptrs.values()],d=pD(ps[0],ps[1]),m=pM(ps[0],ps[1]);const f=d/pinch.d0;const ns=clamp(pinch.s0*f,V.mn,V.mx);const r=ns/pinch.s0;V.tx=pinch.m0.x-r*(pinch.m0.x-pinch.tx0)+(m.x-pinch.m0.x);V.ty=pinch.m0.y-r*(pinch.m0.y-pinch.ty0)+(m.y-pinch.m0.y);V.s=ns;render();return}const w=s2w(sp.x,sp.y);ms={x:snap&&mode==='draw'?Math.round(w.x/G)*G:w.x,y:snap&&mode==='draw'?Math.round(w.y/G)*G:w.y};if(drg){doD(w.x,w.y);return}if(mode==='edit'){hovA=null;hovP=null;if(sel!=null){const sh=shapes[sel];for(let i=0;i<sh.pts.length;i++){const j=(i+1)%sh.pts.length,b=sh.segs[i].bulge||0,hp=hPos(sh.pts[i].x,sh.pts[i].y,sh.pts[j].x,sh.pts[j].y,b);if(Math.hypot(hp.x-w.x,hp.y-w.y)<ahr()){hovA={si:sel,seg:i};cv.style.cursor='grab';render();return}}for(let i=0;i<sh.pts.length;i++){if(Math.hypot(sh.pts[i].x-w.x,sh.pts[i].y-w.y)<phr()){hovP={si:sel,pi:i};cv.style.cursor='move';render();return}}if(ptIn(w.x,w.y,sh)){cv.style.cursor='grab';render();return}}cv.style.cursor='default'}render()});
+    function pUp(e){ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(ptrs.size===0&&drg){drg=null;cv.style.cursor=mode==='draw'?'crosshair':'default';dirty=true;redraw()}}
+    cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',pUp);
+    function doD(wx,wy){if(!drg)return;if(drg.t==='arc'){const sh=shapes[drg.si],i=drg.seg,j=(i+1)%sh.pts.length;const b=pOff(sh.pts[i].x,sh.pts[i].y,sh.pts[j].x,sh.pts[j].y,wx,wy);const ch=Math.hypot(sh.pts[j].x-sh.pts[i].x,sh.pts[j].y-sh.pts[i].y);const cl=clamp(b,-ch*.75,ch*.75);sh.segs[i]=Math.abs(cl)<6?{type:'line',bulge:0}:{type:'arc',bulge:cl};sh.lens[i]=parseFloat((aLen(sh.pts[i].x,sh.pts[i].y,sh.pts[j].x,sh.pts[j].y,sh.segs[i].bulge||0)/G).toFixed(2));sync();return}if(drg.t==='pt'){const sh=shapes[drg.si],x=snap?Math.round(wx/G)*G:wx,y=snap?Math.round(wy/G)*G:wy;sh.pts[drg.pi]={x,y};const n=sh.pts.length;for(const idx of[drg.pi,(drg.pi-1+n)%n]){const j=(idx+1)%n;sh.lens[idx]=parseFloat((aLen(sh.pts[idx].x,sh.pts[idx].y,sh.pts[j].x,sh.pts[j].y,sh.segs[idx].bulge||0)/G).toFixed(2))}sync();return}if(drg.t==='sh'){const sh=shapes[drg.si];let dx=wx-drg.sx,dy=wy-drg.sy;if(snap){dx=Math.round(dx/G)*G;dy=Math.round(dy/G)*G}for(let i=0;i<sh.pts.length;i++){sh.pts[i].x=drg.orig[i].x+dx;sh.pts[i].y=drg.orig[i].y+dy}sync()}}
+
+    function setMode(m){mode=m;document.getElementById('b-draw').classList.toggle('on',m==='draw');document.getElementById('b-edit').classList.toggle('on',m==='edit');cv.style.cursor=m==='draw'?'crosshair':'default';dirty=true;redraw();hap('selectionChanged')}
+    function toggleSnap(){snap=!snap;document.getElementById('b-snap').classList.toggle('on',snap);hap('impactLight')}
+    function undoAction(){if(mode==='draw'&&cur){if(cur.pts.length>0){cur.pts.pop();cur.segs.pop();cur.lens.pop()}else cur=null}else if(shapes.length>0){shapes.pop();if(sel!=null&&sel>=shapes.length)sel=shapes.length-1;if(!shapes.length)sel=null}dirty=true;redraw();hap('impactMedium')}
+    function newShape(){cur=null;sel=null;setMode('draw');hap('impactLight')}
+    function resetAll(){shapes=[];cur=null;sel=null;setMode('draw');dirty=true;redraw();hap('notificationWarning')}
+    function delSh(i){shapes.splice(i,1);if(sel!=null){if(sel>=shapes.length)sel=shapes.length-1;if(sel<0)sel=null}dirty=true;redraw();hap('impactMedium')}
+    function closeSh(){if(!cur||cur.pts.length<3)return;cur.closed=true;cur.lens=cur.pts.map((p,i)=>{const j=(i+1)%cur.pts.length;return parseFloat((aLen(p.x,p.y,cur.pts[j].x,cur.pts[j].y,cur.segs[i].bulge||0)/G).toFixed(2))});shapes.push(cur);cur=null;sel=shapes.length-1;setMode('edit');hap('notificationSuccess')}
+    function upH(){const h=document.getElementById('cv-hint');if(h)h.classList.toggle('hid',shapes.length>0||(cur&&cur.pts.length>0))}
+    function upD(){const el=document.getElementById('dims');if(!shapes.length){el.innerHTML='<div class="empty"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" opacity=".3"><rect x="4" y="8" width="32" height="24" rx="3" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/><path d="M14 20H26M20 14V26" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".5"/></svg><p>Shakl chizing</p></div>';return}el.innerHTML=shapes.map((sh,si)=>{const rows=sh.pts.map((p,i)=>{const j=(i+1)%sh.pts.length,b=sh.segs[i].bulge||0,vl=(aLen(p.x,p.y,sh.pts[j].x,sh.pts[j].y,b)/G).toFixed(2),ml=sh.lens[i]!=null?sh.lens[i]:vl;const tag=b?'<span class="st arc">EGRI</span>':'<span class="st lin">TO\'G\'RI</span>';return'<div class="sr">'+tag+'<span class="sl">'+ALP[i]+(si+1)+'\u2013'+ALP[j]+(si+1)+'</span><input class="si" type="number" value="'+ml+'" min="0.01" step="0.1" inputmode="decimal" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()" oninput="setL('+si+','+i+',this.value)"><span class="su">m</span></div>'}).join('');return'<div class="sc'+(sel===si?' sel':'')+'" onclick="pickSh('+si+')"><div class="sct"><span>\u25C6 SHAKL #'+(si+1)+'</span><button class="scd" onclick="event.stopPropagation();delSh('+si+')">\u2715</button></div>'+rows+'</div>'}).join('')}
+    function pickSh(i){sel=i;if(mode!=='edit')setMode('edit');dirty=true;redraw();hap('selectionChanged')}
+    function setL(si,i,v){const n=parseFloat(v);if(!isNaN(n)&&n>0){shapes[si].lens[i]=n;render();upC()}}
+    function calcA(){let t=0;shapes.forEach(sh=>{if(!sh.closed)return;const va=sArea(sh)/(G*G);let vP=0,mP=0;sh.pts.forEach((p,i)=>{const j=(i+1)%sh.pts.length,b=sh.segs[i].bulge||0,vis=aLen(p.x,p.y,sh.pts[j].x,sh.pts[j].y,b)/G;vP+=vis;mP+=(sh.lens[i]!=null?sh.lens[i]:vis)});const sc=vP>0?Math.pow(mP/vP,2):1;t+=va*sc});return t*(RMUL[cfg.roof]||1)*(1+(cfg.pitch-.5)*.04)}
+    function calcCo(a){return Math.round(a*(PRICES[cfg.country]?.[cfg.thick]||60000)*(TMUL[cfg.type]||1))}
+    function fmt(n){return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')}
+    function upC(){const a=calcA(),c=calcCo(a);document.getElementById('ra').textContent=a.toFixed(2)+' m\u00B2';document.getElementById('rc').textContent=fmt(c)+' so\'m';const cn={china:'Xitoy',russia:'Rossiya',korea:'Koreya',kazakhstan:"Qozog'iston"};document.getElementById('rs').textContent=cfg.type+' \u00B7 '+cfg.thick+'mm \u00B7 '+(cn[cfg.country]||cfg.country)}
+    window.addEventListener('load',()=>{initCv();initClr();initPort();upH();upC();redraw()});
+    window.addEventListener('resize',()=>{if(document.getElementById('pg-calc').classList.contains('on')){initCv();redraw()}});
+</script>
 </body>
 </html>
